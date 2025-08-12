@@ -210,9 +210,11 @@ function HomePage() {
                   <Heart className="h-6 w-6 text-pink-700 mr-2" />
                   <Users className="h-6 w-6 text-pink-700" />
                   <Heart className="h-6 w-6 text-pink-700 ml-2" />
-                  <h3 className="text-3xl md:text-4xl font-bold text-amber-900">Scegli la Tua Cima</h3>
+                </div>
                 <p className="text-xl text-amber-900 mb-4">
                   Le prove sono pensate per <span className="text-pink-700 font-semibold">divertire, unire e far ridere</span>.
+                </p>
+                <p className="text-xl text-amber-900">
                 </p>
                   Ogni cima rappresenta un tavolo. Clicca sulla tua per accedere alla pagina delle missioni. 
                   Che siate elfi burloni o cavalieri seri, la vostra <span className="text-pink-700 font-bold">creatività</span> sarà l'arma più potente.
