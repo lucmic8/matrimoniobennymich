@@ -12,11 +12,13 @@ import {
 } from 'lucide-react';
 import { guilds } from '../data/guilds';
 import { challenges } from '../data/challenges';
+import PhotoUpload from './PhotoUpload';
 
 function GuildPage() {
   const { guildId } = useParams<{ guildId: string }>();
   const navigate = useNavigate();
   const [completedChallenges, setCompletedChallenges] = useState<Set<number>>(new Set());
+  const [uploadingChallenge, setUploadingChallenge] = useState<number | null>(null);
 
   const guild = guilds.find(g => g.id === guildId);
 
@@ -24,7 +26,7 @@ function GuildPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-amber-50">
         <div className="text-center bg-white/80 p-8 rounded-2xl border-2 border-amber-200 shadow-lg">
-          <h1 className="text-2xl font-bold text-amber-900 mb-4">Gilda non trovata</h1>
+          <h1 className="text-2xl font-bold text-amber-900 mb-4">Cima non trovata</h1>
           <button
             onClick={() => navigate('/')}
             className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-lg transition-colors"
@@ -71,7 +73,7 @@ function GuildPage() {
               className="flex items-center text-amber-800 hover:text-amber-700 transition-colors mb-8 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-lg border-2 border-amber-300 shadow-md hover:shadow-lg"
             >
               <ArrowLeft className="h-5 w-5 mr-2" />
-              Torna alle Gilde
+              Torna alle Cime
             </button>
 
             {/* Guild Info */}
@@ -95,7 +97,7 @@ function GuildPage() {
               {/* Progress Bar */}
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-amber-700 font-semibold">Progresso della Quest</span>
+                  <span className="text-amber-700 font-semibold">Progresso della Sfida</span>
                   <span className="text-amber-800">{completedChallenges.size}/{challenges.length} Prove</span>
                 </div>
                 <div className="w-full bg-amber-200/50 rounded-full h-3 border border-amber-300">
@@ -105,7 +107,7 @@ function GuildPage() {
                   ></div>
                 </div>
                 <p className="text-sm text-amber-700 mt-2">
-                  {completionPercentage === 100 ? '🏆 Quest Completata! Siete degni della gloria eterna!' : 
+                  {completionPercentage === 100 ? '🏆 Sfida Completata! Siete degni della gloria eterna!' : 
                    completionPercentage >= 50 ? '⚔️ Ottimo lavoro, continuate così!' : 
                    '🗡️ La vostra avventura è appena iniziata!'}
                 </p>
@@ -120,7 +122,7 @@ function GuildPage() {
             <div className="text-center mb-12">
               <div className="flex items-center justify-center mb-4">
                 <Camera className="h-8 w-8 text-cyan-700 mr-3" />
-                <h3 className="text-3xl md:text-4xl font-bold text-amber-900">Le 10 Prove Fotografiche</h3>
+                <h3 className="text-3xl md:text-4xl font-bold text-amber-900">Le Prove Fotografiche</h3>
                 <Camera className="h-8 w-8 text-cyan-700 ml-3" />
               </div>
               <p className="text-lg text-amber-800 max-w-3xl mx-auto">
@@ -187,7 +189,10 @@ function GuildPage() {
                           <span className="font-medium">Difficoltà: {challenge.difficulty}</span>
                         </div>
                         
-                        <button className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-200 flex items-center text-sm font-medium shadow-md hover:shadow-lg">
+                        <button 
+                          onClick={() => setUploadingChallenge(challenge.id)}
+                          className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-200 flex items-center text-sm font-medium shadow-md hover:shadow-lg"
+                        >
                           <Upload className="h-4 w-4 mr-2" />
                           Carica la Prova
                         </button>
@@ -204,10 +209,10 @@ function GuildPage() {
                 <Crown className="h-16 w-16 text-amber-700 mx-auto mb-4" />
                 <h3 className="text-3xl font-bold text-amber-900 mb-4">🏆 VITTORIA EPICA! 🏆</h3>
                 <p className="text-xl text-amber-800 mb-4">
-                  La <span className="text-amber-700 font-bold">{guild.subtitle}</span> ha conquistato tutte le vette!
+                  La <span className="text-amber-700 font-bold">{guild.subtitle}</span> ha conquistato tutte le cime!
                 </p>
                 <p className="text-lg text-amber-700">
-                  Siete degni di essere ricordati nelle leggende delle Grandi Cime! 
+                  Siete degni di essere ricordati nelle leggende delle Grandi Montagne! 
                   La vostra gloria risuonerà per l'eternità tra le montagne!
                 </p>
               </div>
@@ -215,6 +220,15 @@ function GuildPage() {
           </div>
         </div>
       </div>
+
+      {/* Photo Upload Modal */}
+      {uploadingChallenge && (
+        <PhotoUpload
+          challengeId={uploadingChallenge}
+          challengeTitle={challenges.find(c => c.id === uploadingChallenge)?.title || ''}
+          onClose={() => setUploadingChallenge(null)}
+        />
+      )}
     </div>
   );
 }

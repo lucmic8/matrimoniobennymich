@@ -56,21 +56,21 @@ function HomePage() {
                 
                 <h1 className="text-5xl md:text-7xl font-bold text-amber-900 mb-6 leading-tight drop-shadow-sm">
                   <span className="bg-gradient-to-r from-amber-800 via-yellow-700 to-amber-900 bg-clip-text text-transparent">
-                    La Quest degli Sposi
+                    Sfida all'ultima Cima
                   </span>
                 </h1>
                 
                 <h2 className="text-2xl md:text-3xl font-semibold text-amber-800 mb-8">
-                  Le Gilde delle Grandi Cime
+                  Nozze ad Alta Quota
                 </h2>
                 
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 max-w-3xl mx-auto border-2 border-amber-200 shadow-lg">
                   <p className="text-xl md:text-2xl text-amber-900 leading-relaxed">
-                    O viandanti, benvenuti alla magnifica <span className="text-amber-700 font-semibold">Quest degli Sposi!</span>
+                    Cari amici e parenti, abbiamo organizzato per voi alcune sfide.
                     <br />
-                    Unitevi alle vostre gilde assegnate e compiete nobili missioni fotografiche per guadagnare la gloria.
+                    Trovate la vostra cima e...che vinca il miglior tavolo!
                     <br />
-                    <span className="text-amber-800 font-bold">Che il miglior tavolo trionfi!</span>
+                    <span className="text-amber-800 font-bold">Completate le missioni fotografiche per la gloria!</span>
                   </p>
                 </div>
               </div>
@@ -92,8 +92,8 @@ function HomePage() {
             <div className="grid md:grid-cols-3 gap-8">
               <div className="bg-white/70 rounded-2xl p-8 border-2 border-blue-200 shadow-lg">
                 <Shield className="h-12 w-12 text-blue-700 mb-4" />
-                <h4 className="text-xl font-bold text-amber-900 mb-4">Le Gilde</h4>
-                <p className="text-amber-800">Ogni tavolo appartiene a una Gilda delle Grandi Cime. Unite le forze per la gloria!</p>
+                <h4 className="text-xl font-bold text-amber-900 mb-4">Le Cime</h4>
+                <p className="text-amber-800">Ogni tavolo appartiene a una Cima delle Grandi Montagne. Unite le forze per la gloria!</p>
               </div>
               
               <div className="bg-white/70 rounded-2xl p-8 border-2 border-purple-200 shadow-lg">
@@ -184,7 +184,7 @@ function HomePage() {
                       </p>
                       
                       <div className="mt-4 flex items-center text-amber-700 text-sm font-medium">
-                        <span>Entra nella Gilda</span>
+                        <span>Entra nella Cima</span>
                         <Star className="h-4 w-4 ml-2 group-hover:animate-pulse" />
                       </div>
                     </div>
@@ -210,11 +210,11 @@ function HomePage() {
                   <Heart className="h-6 w-6 text-pink-700 mr-2" />
                   <Users className="h-6 w-6 text-pink-700" />
                   <Heart className="h-6 w-6 text-pink-700 ml-2" />
-                </div>
+                  <h3 className="text-3xl md:text-4xl font-bold text-amber-900">Scegli la Tua Cima</h3>
                 <p className="text-xl text-amber-900 mb-4">
                   Le prove sono pensate per <span className="text-pink-700 font-semibold">divertire, unire e far ridere</span>.
                 </p>
-                <p className="text-lg text-amber-800">
+                  Ogni cima rappresenta un tavolo. Clicca sulla tua per accedere alla pagina delle missioni. 
                   Che siate elfi burloni o cavalieri seri, la vostra <span className="text-pink-700 font-bold">creatività</span> sarà l'arma più potente.
                 </p>
               </div>
@@ -225,10 +225,10 @@ function HomePage() {
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
                   <span className="bg-blue-200/80 text-blue-800 px-4 py-2 rounded-full font-semibold border border-blue-300">
-                    #WeddingQuest2025
+                    #SfidaAllUltimaCima2025
                   </span>
                   <span className="bg-pink-200/80 text-pink-800 px-4 py-2 rounded-full font-semibold border border-pink-300">
-                    #GildaDelMioCuore
+                    #CimaDelMioCuore
                   </span>
                 </div>
               </div>
@@ -245,7 +245,7 @@ function HomePage() {
               <Crown className="h-6 w-6 text-amber-700 ml-2" />
             </div>
             <p className="text-amber-700">
-              Che la vostra quest sia leggendaria! 🏔️✨
+              Che la vostra sfida sia leggendaria! 🏔️✨
             </p>
           </div>
         </div>
