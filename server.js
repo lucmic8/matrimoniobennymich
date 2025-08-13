@@ -106,7 +106,7 @@ app.post('/api/upload-dropbox', async (req, res) => {
       console.log('❌ Errore upload Dropbox');
       return res.status(uploadResponse.status).json({
         success: false,
-        error: 'Errore Dropbox upload',
+        error: uploadResult.error_summary || uploadResult.error?.message || uploadResult.raw || 'Errore Dropbox upload',
         result: uploadResult,
         status: uploadResponse.status
       });
@@ -187,7 +187,7 @@ app.post('/api/upload-dropbox', async (req, res) => {
           console.log('❌ Errore creazione link');
           return res.status(500).json({ 
             success: false, 
-            error: 'Impossibile creare link condiviso',
+            error: linkResult.error_summary || linkResult.error?.message || simpleLinkResult.error_summary || simpleLinkResult.error?.message || 'Impossibile creare link condiviso',
             result: { upload: uploadResult, link: simpleLinkResult }
           });
         }
@@ -209,7 +209,7 @@ app.post('/api/upload-dropbox', async (req, res) => {
     console.error('❌ Errore server:', error);
     return res.status(500).json({ 
       success: false, 
-      error: error.message || 'Errore sconosciuto',
+      error: `Errore server: ${error.message}` || 'Errore server sconosciuto',
       details: error.stack
     });
   }
