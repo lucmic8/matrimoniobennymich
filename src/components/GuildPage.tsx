@@ -44,17 +44,22 @@ function GuildPage() {
   }, [guildId]);
 
   const autoConfigureDropbox = () => {
-    // Prova prima l'inizializzazione automatica
-    if (DropboxService.initializeWithDefaultToken()) {
-      setDropboxConfigured(true);
-      return;
-    }
-    
-    // Fallback al token salvato localmente
-    const savedToken = localStorage.getItem('dropbox_access_token');
-    if (savedToken) {
-      DropboxService.initialize(savedToken);
-      setDropboxConfigured(DropboxService.isConfigured());
+    try {
+      // Prova prima l'inizializzazione automatica
+      if (DropboxService.initializeWithDefaultToken()) {
+        setDropboxConfigured(true);
+        return;
+      }
+      
+      // Fallback al token salvato localmente
+      const savedToken = localStorage.getItem('dropbox_access_token');
+      if (savedToken) {
+        DropboxService.initialize(savedToken);
+        setDropboxConfigured(DropboxService.isConfigured());
+      }
+    } catch (error) {
+      console.warn('Errore configurazione Dropbox:', error);
+      setDropboxConfigured(false);
     }
   };
 

@@ -5,29 +5,29 @@ import { DropboxService } from './dropboxService'
 export class PhotoService {
   // Carica una foto nel storage di Supabase
   static async uploadPhoto(file: File, guildId: string, challengeId: number): Promise<string> {
-    // Prova prima con Dropbox, poi con Supabase, infine localStorage
-    if (DropboxService.isConfigured()) {
-      try {
-        const photoUrl = await DropboxService.uploadPhoto(file, guildId, challengeId);
-        // Salva i metadati localmente
-        await this.savePhotoMetadata(guildId, challengeId, photoUrl);
-        return photoUrl;
-      } catch (error) {
-        console.error('Errore Dropbox, provo con fallback:', error);
-      }
-    }
-
-    // Verifica se Supabase è configurato
-    const supabaseConfigured = await isSupabaseConfigured()
-    if (!supabaseConfigured) {
-      // Fallback al localStorage per ora
-      const base64 = await PhotoService.fileToBase64(file)
-      const photoKey = `photo_${guildId}_${challengeId}`
-      localStorage.setItem(photoKey, base64)
-      return base64
-    }
-
     try {
+      // Prova prima con Dropbox, poi con Supabase, infine localStorage
+      if (DropboxService.isConfigured()) {
+        try {
+          const photoUrl = await DropboxService.uploadPhoto(file, guildId, challengeId);
+          // Salva i metadati localmente
+          await this.savePhotoMetadata(guildId, challengeId, photoUrl);
+          return photoUrl;
+        } catch (error) {
+          console.error('Errore Dropbox, provo con fallback:', error);
+        }
+      }
+
+      // Verifica se Supabase è configurato
+      const supabaseConfigured = await isSupabaseConfigured()
+      if (!supabaseConfigured) {
+        // Fallback al localStorage per ora
+        const base64 = await PhotoService.fileToBase64(file)
+        const photoKey = `photo_${guildId}_${challengeId}`
+        localStorage.setItem(photoKey, base64)
+        return base64
+      }
+
       // Verifica che il file sia valido
       if (!file || file.size === 0) {
         throw new Error('File non valido');
@@ -67,10 +67,11 @@ export class PhotoService {
       return photoUrl
     } catch (error) {
       console.error('Errore nel caricamento della foto:', error)
-      if (error instanceof Error) {
-        throw new Error(`Impossibile caricare la foto: ${error.message}`);
-      }
-      throw new Error('Impossibile caricare la foto');
+      // Fallback finale al localStorage
+      const base64 = await PhotoService.fileToBase64(file)
+      const photoKey = `photo_${guildId}_${challengeId}`
+      localStorage.setItem(photoKey, base64)
+      return base64
     }
   }
 
