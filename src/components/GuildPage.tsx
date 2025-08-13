@@ -299,11 +299,6 @@ function GuildPage() {
               </div>
               <p className="text-lg text-amber-800 max-w-3xl mx-auto">
                 Completate tutte le missioni per conquistare la vetta della gloria. 
-                {!supabaseConfigured && (
-                  <span className="block mt-2 text-amber-700 font-semibold">
-                    ⚠️ Modalità offline: le foto vengono salvate solo su questo dispositivo.
-                  </span>
-                )}
               </p>
             </div>
 
