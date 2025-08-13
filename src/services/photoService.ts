@@ -144,7 +144,21 @@ export class PhotoService {
 
   // Ottieni una foto specifica
   static async getChallengePhoto(guildId: string, challengeId: number): Promise<ChallengePhoto | null> {
-    if (!supabase) {
+    const supabaseConfigured = await isSupabaseConfigured()
+    if (!supabaseConfigured || !supabase) {
+      // Fallback al localStorage
+      const photoKey = `photo_${guildId}_${challengeId}`
+      const savedPhoto = localStorage.getItem(photoKey)
+      if (savedPhoto) {
+        return {
+          id: `${guildId}_${challengeId}`,
+          guild_id: guildId,
+          challenge_id: challengeId,
+          photo_url: savedPhoto,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      }
       return null;
     }
 
@@ -181,7 +195,8 @@ export class PhotoService {
       }
     }
 
-    if (!supabase) {
+    const supabaseConfigured = await isSupabaseConfigured()
+    if (!supabaseConfigured || !supabase) {
       // Rimuovi dal localStorage
       const photoKey = `photo_${guildId}_${challengeId}`;
       localStorage.removeItem(photoKey);

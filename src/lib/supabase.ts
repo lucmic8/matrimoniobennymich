@@ -4,16 +4,22 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co'
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key-here'
 
-// Crea sempre il client Supabase
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Crea il client Supabase solo se le credenziali sono valide
+export const supabase = (supabaseUrl.includes('your-project') || supabaseAnonKey.includes('your-anon-key')) 
+  ? null 
+  : createClient(supabaseUrl, supabaseAnonKey)
 
 // Funzione per verificare se Supabase è configurato correttamente
 export const isSupabaseConfigured = async (): Promise<boolean> => {
+  // Se il client non è stato creato, Supabase non è configurato
+  if (!supabase) {
+    return false
+  }
+  
   try {
     const { data, error } = await supabase.from('challenge_photos').select('count').limit(1)
     return !error
   } catch (error) {
-    console.warn('Supabase non configurato correttamente:', error)
     return false
   }
 }
