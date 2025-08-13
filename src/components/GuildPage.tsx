@@ -8,11 +8,14 @@ import {
   Crown,
   Star,
   CheckCircle,
-  Circle
+  Circle,
+  Loader,
+  RefreshCw
 } from 'lucide-react';
 import { guilds } from '../data/guilds';
 import { challenges } from '../data/challenges';
 import PhotoUpload from './PhotoUpload';
+import { PhotoService } from '../services/photoService';
 
 function GuildPage() {
   const { guildId } = useParams<{ guildId: string }>();
@@ -20,19 +23,57 @@ function GuildPage() {
   const [completedChallenges, setCompletedChallenges] = useState<Set<number>>(new Set());
   const [challengePhotos, setChallengePhotos] = useState<Map<number, string>>(new Map());
   const [uploadingChallenge, setUploadingChallenge] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Carica i dati salvati al mount del componente
+  // Carica i dati da Supabase al mount del componente
   useEffect(() => {
+    loadGuildData();
+  }, [guildId]);
+
+  const loadGuildData = async () => {
     if (!guildId) return;
     
-    // Carica le sfide completate
+    setIsLoading(true);
+    try {
+      // Carica le foto delle sfide
+      const photos = await PhotoService.getGuildPhotos(guildId);
+      const photoMap = new Map<number, string>();
+      photos.forEach(photo => {
+        photoMap.set(photo.challenge_id, photo.photo_url);
+      });
+      setChallengePhotos(photoMap);
+      
+      // Carica il progresso delle sfide
+      const progress = await PhotoService.getGuildProgress(guildId);
+      const completedSet = new Set<number>();
+      progress.forEach(p => {
+        if (p.completed) {
+          completedSet.add(p.challenge_id);
+        }
+      });
+      setCompletedChallenges(completedSet);
+      
+    } catch (error) {
+      console.error('Errore nel caricamento dei dati:', error);
+      // Fallback al localStorage in caso di errore
+      loadFromLocalStorage();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadFromLocalStorage = () => {
+    if (!guildId) return;
+    
+    // Carica le sfide completate dal localStorage (fallback)
     const completedKey = `completed_${guildId}`;
     const savedCompleted = localStorage.getItem(completedKey);
     if (savedCompleted) {
       setCompletedChallenges(new Set(JSON.parse(savedCompleted)));
     }
     
-    // Carica le foto delle sfide
+    // Carica le foto delle sfide dal localStorage (fallback)
     const photoMap = new Map<number, string>();
     challenges.forEach(challenge => {
       const photoKey = `photo_${guildId}_${challenge.id}`;
@@ -42,14 +83,13 @@ function GuildPage() {
       }
     });
     setChallengePhotos(photoMap);
-  }, [guildId]);
+  };
 
-  // Salva le sfide completate quando cambiano
-  useEffect(() => {
-    if (!guildId) return;
-    const completedKey = `completed_${guildId}`;
-    localStorage.setItem(completedKey, JSON.stringify(Array.from(completedChallenges)));
-  }, [completedChallenges, guildId]);
+  const refreshData = async () => {
+    setIsRefreshing(true);
+    await loadGuildData();
+    setIsRefreshing(false);
+  };
 
   const guild = guilds.find(g => g.id === guildId);
 
@@ -69,29 +109,87 @@ function GuildPage() {
     );
   }
 
-  const toggleChallenge = (challengeId: number) => {
+  const toggleChallenge = async (challengeId: number) => {
+    if (!guildId) return;
+    
     const newCompleted = new Set(completedChallenges);
+    const isCompleted = !newCompleted.has(challengeId);
+    
     if (newCompleted.has(challengeId)) {
       newCompleted.delete(challengeId);
     } else {
       newCompleted.add(challengeId);
     }
     setCompletedChallenges(newCompleted);
+    
+    // Aggiorna il progresso su Supabase
+    try {
+      await PhotoService.updateChallengeProgress(guildId, challengeId, isCompleted);
+      
+      // Salva anche nel localStorage come backup
+      const completedKey = `completed_${guildId}`;
+      localStorage.setItem(completedKey, JSON.stringify(Array.from(newCompleted)));
+    } catch (error) {
+      console.error('Errore nell\'aggiornamento del progresso:', error);
+      // Salva almeno nel localStorage
+      const completedKey = `completed_${guildId}`;
+      localStorage.setItem(completedKey, JSON.stringify(Array.from(newCompleted)));
+    }
   };
 
-  const handlePhotoUploaded = (challengeId: number, photoUrl: string) => {
+  const handlePhotoUploaded = async (challengeId: number, photoUrl: string) => {
+    if (!guildId) return;
+    
     // Aggiorna la mappa delle foto
     const newPhotos = new Map(challengePhotos);
-    newPhotos.set(challengeId, photoUrl);
+    if (photoUrl) {
+      newPhotos.set(challengeId, photoUrl);
+    } else {
+      newPhotos.delete(challengeId);
+    }
     setChallengePhotos(newPhotos);
     
-    // Marca automaticamente la sfida come completata
+    // Marca automaticamente la sfida come completata se c'è una foto
     const newCompleted = new Set(completedChallenges);
-    newCompleted.add(challengeId);
+    if (photoUrl) {
+      newCompleted.add(challengeId);
+    } else {
+      newCompleted.delete(challengeId);
+    }
     setCompletedChallenges(newCompleted);
+    
+    // Aggiorna il progresso su Supabase
+    try {
+      await PhotoService.updateChallengeProgress(guildId, challengeId, !!photoUrl);
+      
+      // Salva anche nel localStorage come backup
+      const completedKey = `completed_${guildId}`;
+      localStorage.setItem(completedKey, JSON.stringify(Array.from(newCompleted)));
+      if (photoUrl) {
+        const photoKey = `photo_${guildId}_${challengeId}`;
+        localStorage.setItem(photoKey, photoUrl);
+      } else {
+        const photoKey = `photo_${guildId}_${challengeId}`;
+        localStorage.removeItem(photoKey);
+      }
+    } catch (error) {
+      console.error('Errore nell\'aggiornamento:', error);
+    }
   };
 
   const completionPercentage = (completedChallenges.size / challenges.length) * 100;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-amber-50">
+        <div className="text-center bg-white/80 p-8 rounded-2xl border-2 border-amber-200 shadow-lg">
+          <Loader className="h-12 w-12 text-amber-600 mx-auto mb-4 animate-spin" />
+          <h2 className="text-xl font-bold text-amber-900 mb-2">Caricamento dati...</h2>
+          <p className="text-amber-700">Stiamo recuperando le foto e il progresso della tua cima</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative bg-amber-50">
@@ -141,7 +239,17 @@ function GuildPage() {
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-amber-700 font-semibold">Progresso della Sfida</span>
-                  <span className="text-amber-800">{completedChallenges.size}/{challenges.length} Prove</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-amber-800">{completedChallenges.size}/{challenges.length} Prove</span>
+                    <button
+                      onClick={refreshData}
+                      disabled={isRefreshing}
+                      className="text-amber-600 hover:text-amber-800 transition-colors disabled:opacity-50"
+                      title="Aggiorna dati"
+                    >
+                      <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    </button>
+                  </div>
                 </div>
                 <div className="w-full bg-amber-200/50 rounded-full h-3 border border-amber-300">
                   <div 
@@ -169,7 +277,7 @@ function GuildPage() {
                 <Camera className="h-8 w-8 text-cyan-700 ml-3" />
               </div>
               <p className="text-lg text-amber-800 max-w-3xl mx-auto">
-                Completate tutte le missioni per conquistare la vetta della gloria. Ogni prova deve essere immortalata con una foto!
+                Completate tutte le missioni per conquistare la vetta della gloria. Le foto sono condivise tra tutti i dispositivi!
               </p>
             </div>
 
