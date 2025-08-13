@@ -285,15 +285,6 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
             </>
           )}
 
-          {/* Nota informativa */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-blue-800 text-sm">
-              <strong>📸 Nota:</strong> {supabase ? 
-                'Le foto caricate saranno visibili a tutti i membri della tua cima su tutti i dispositivi e contribuiranno al completamento delle prove di gruppo.' :
-                'Per condividere le foto tra dispositivi, clicca su "Connect to Supabase" in alto a destra. Senza Supabase, le foto saranno salvate solo localmente su questo dispositivo.'
-              }
-            </p>
-          </div>
         </div>
       </div>
     </div>
