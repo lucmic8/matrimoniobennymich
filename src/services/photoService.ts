@@ -19,64 +19,231 @@ export interface GuildProgress {
 }
 
 export class PhotoService {
-  // Carica una foto
+  // Carica una foto con gestione migliorata per fotocamera
   static async uploadPhoto(file: File, guildId: string, challengeId: number): Promise<string> {
     try {
-      // Prova prima con Dropbox
-      if (DropboxService.isConfigured()) {
-        try {
-          const photoUrl = await DropboxService.uploadPhoto(file, guildId, challengeId);
-          // Salva i metadati localmente
-          await this.savePhotoMetadata(guildId, challengeId, photoUrl);
-          return photoUrl;
-        } catch (error) {
-          console.error('Errore Dropbox, uso fallback locale:', error);
-        }
+      console.log('Inizio caricamento foto:', { fileName: file.name, size: file.size, type: file.type });
+      
+      // Verifica che il file sia valido
+      if (!file || file.size === 0) {
+        throw new Error('File non valido o vuoto');
       }
 
-      // Fallback al localStorage
-      const base64 = await PhotoService.fileToBase64(file);
-      const photoKey = `photo_${guildId}_${challengeId}`;
-      localStorage.setItem(photoKey, base64);
+      // Verifica che sia un'immagine
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Il file deve essere un\'immagine');
+      }
+
+      // Verifica dimensione (max 50MB per compatibilità mobile)
+      if (file.size > 50 * 1024 * 1024) {
+        throw new Error('Il file è troppo grande. Dimensione massima: 50MB');
+      }
+
+      let photoUrl: string;
+
+      // Prova prima con Dropbox se configurato
+      if (DropboxService.isConfigured()) {
+        try {
+          console.log('Caricamento su Dropbox...');
+          photoUrl = await DropboxService.uploadPhoto(file, guildId, challengeId);
+          console.log('Caricamento Dropbox completato:', photoUrl);
+        } catch (error) {
+          console.error('Errore Dropbox, uso fallback locale:', error);
+          // Fallback al base64 locale
+          photoUrl = await PhotoService.fileToBase64(file);
+        }
+      } else {
+        // Usa base64 locale se Dropbox non è configurato
+        console.log('Dropbox non configurato, uso storage locale...');
+        photoUrl = await PhotoService.fileToBase64(file);
+      }
+
+      // Salva i metadati sia localmente che su Dropbox
+      await this.savePhotoMetadata(guildId, challengeId, photoUrl);
       
-      // Salva anche i metadati
-      await this.savePhotoMetadata(guildId, challengeId, base64);
+      // Sincronizza i dati su Dropbox
+      await this.syncDataToDropbox(guildId);
       
-      return base64;
+      console.log('Caricamento completato con successo');
+      return photoUrl;
     } catch (error) {
       console.error('Errore nel caricamento della foto:', error);
-      throw new Error('Impossibile caricare la foto');
+      throw new Error(error instanceof Error ? error.message : 'Impossibile caricare la foto');
     }
   }
 
-  // Converte un file in base64
+  // Converte un file in base64 con gestione migliorata
   private static fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
+      try {
+        const reader = new FileReader();
+        
+        reader.onload = () => {
+          if (reader.result) {
+            resolve(reader.result as string);
+          } else {
+            reject(new Error('Impossibile leggere il file'));
+          }
+        };
+        
+        reader.onerror = () => {
+          reject(new Error('Errore nella lettura del file'));
+        };
+        
+        reader.onabort = () => {
+          reject(new Error('Lettura del file interrotta'));
+        };
+        
+        // Usa readAsDataURL per compatibilità con tutti i tipi di file immagine
+        reader.readAsDataURL(file);
+      } catch (error) {
+        reject(new Error('Errore nell\'elaborazione del file'));
+      }
     });
   }
 
   // Salva i metadati della foto
   static async savePhotoMetadata(guildId: string, challengeId: number, photoUrl: string): Promise<void> {
-    const photoKey = `photo_${guildId}_${challengeId}`;
-    const metadataKey = `metadata_${guildId}_${challengeId}`;
-    
-    localStorage.setItem(photoKey, photoUrl);
-    localStorage.setItem(metadataKey, JSON.stringify({
+    const metadata = {
       id: `${guildId}_${challengeId}`,
       guild_id: guildId,
       challenge_id: challengeId,
       photo_url: photoUrl,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    }));
+    };
+
+    // Salva localmente
+    const photoKey = `photo_${guildId}_${challengeId}`;
+    const metadataKey = `metadata_${guildId}_${challengeId}`;
+    
+    localStorage.setItem(photoKey, photoUrl);
+    localStorage.setItem(metadataKey, JSON.stringify(metadata));
+  }
+
+  // Sincronizza tutti i dati di una gilda su Dropbox
+  static async syncDataToDropbox(guildId: string): Promise<void> {
+    if (!DropboxService.isConfigured()) {
+      console.log('Dropbox non configurato, skip sincronizzazione');
+      return;
+    }
+
+    try {
+      // Raccogli tutti i dati della gilda
+      const guildData = {
+        photos: {} as Record<number, any>,
+        progress: {} as Record<number, any>,
+        lastSync: new Date().toISOString()
+      };
+
+      // Raccogli foto e metadati
+      for (let i = 1; i <= 15; i++) {
+        const metadataKey = `metadata_${guildId}_${i}`;
+        const progressKey = `progress_${guildId}_${i}`;
+        
+        const photoMetadata = localStorage.getItem(metadataKey);
+        const progressData = localStorage.getItem(progressKey);
+        
+        if (photoMetadata) {
+          try {
+            guildData.photos[i] = JSON.parse(photoMetadata);
+          } catch (e) {
+            console.warn(`Errore parsing metadata per sfida ${i}:`, e);
+          }
+        }
+        
+        if (progressData) {
+          try {
+            guildData.progress[i] = JSON.parse(progressData);
+          } catch (e) {
+            console.warn(`Errore parsing progress per sfida ${i}:`, e);
+          }
+        }
+      }
+
+      // Salva il file di sincronizzazione su Dropbox
+      const dataBlob = new Blob([JSON.stringify(guildData, null, 2)], { 
+        type: 'application/json' 
+      });
+      const dataFile = new File([dataBlob], `${guildId}_data.json`, { 
+        type: 'application/json' 
+      });
+
+      await DropboxService.uploadDataFile(dataFile, guildId);
+      
+      // Salva timestamp ultima sincronizzazione
+      localStorage.setItem(`lastSync_${guildId}`, new Date().toISOString());
+      
+      console.log('Sincronizzazione completata per gilda:', guildId);
+    } catch (error) {
+      console.error('Errore nella sincronizzazione:', error);
+      // Non lanciare errore per non bloccare l'operazione principale
+    }
+  }
+
+  // Carica i dati sincronizzati da Dropbox
+  static async loadSyncedData(guildId: string): Promise<void> {
+    if (!DropboxService.isConfigured()) {
+      console.log('Dropbox non configurato, uso solo dati locali');
+      return;
+    }
+
+    try {
+      console.log('Caricamento dati sincronizzati per gilda:', guildId);
+      
+      const syncedData = await DropboxService.loadDataFile(guildId);
+      if (!syncedData) {
+        console.log('Nessun dato sincronizzato trovato');
+        return;
+      }
+
+      // Controlla se i dati remoti sono più recenti
+      const localLastSync = localStorage.getItem(`lastSync_${guildId}`);
+      const remoteLastSync = syncedData.lastSync;
+      
+      if (localLastSync && remoteLastSync) {
+        const localDate = new Date(localLastSync);
+        const remoteDate = new Date(remoteLastSync);
+        
+        if (localDate >= remoteDate) {
+          console.log('Dati locali più recenti, skip caricamento');
+          return;
+        }
+      }
+
+      // Applica i dati sincronizzati
+      console.log('Applicazione dati sincronizzati...');
+      
+      // Applica foto e metadati
+      Object.entries(syncedData.photos || {}).forEach(([challengeId, metadata]) => {
+        const photoKey = `photo_${guildId}_${challengeId}`;
+        const metadataKey = `metadata_${guildId}_${challengeId}`;
+        
+        localStorage.setItem(photoKey, (metadata as any).photo_url);
+        localStorage.setItem(metadataKey, JSON.stringify(metadata));
+      });
+
+      // Applica progresso
+      Object.entries(syncedData.progress || {}).forEach(([challengeId, progress]) => {
+        const progressKey = `progress_${guildId}_${challengeId}`;
+        localStorage.setItem(progressKey, JSON.stringify(progress));
+      });
+
+      // Aggiorna timestamp locale
+      localStorage.setItem(`lastSync_${guildId}`, syncedData.lastSync);
+      
+      console.log('Dati sincronizzati applicati con successo');
+    } catch (error) {
+      console.error('Errore nel caricamento dati sincronizzati:', error);
+      // Non lanciare errore per non bloccare l'app
+    }
   }
 
   // Ottieni tutte le foto di una gilda
   static async getGuildPhotos(guildId: string): Promise<ChallengePhoto[]> {
+    // Prima carica i dati sincronizzati
+    await this.loadSyncedData(guildId);
+    
     const photos: ChallengePhoto[] = [];
     
     for (let i = 1; i <= 15; i++) {
@@ -98,6 +265,9 @@ export class PhotoService {
 
   // Ottieni una foto specifica
   static async getChallengePhoto(guildId: string, challengeId: number): Promise<ChallengePhoto | null> {
+    // Prima carica i dati sincronizzati
+    await this.loadSyncedData(guildId);
+    
     const metadataKey = `metadata_${guildId}_${challengeId}`;
     const savedMetadata = localStorage.getItem(metadataKey);
     
@@ -134,6 +304,9 @@ export class PhotoService {
       localStorage.removeItem(photoKey);
       localStorage.removeItem(metadataKey);
       
+      // Sincronizza la rimozione
+      await this.syncDataToDropbox(guildId);
+      
     } catch (error) {
       console.error('Errore nell\'eliminazione della foto:', error);
       throw new Error('Impossibile eliminare la foto');
@@ -142,19 +315,27 @@ export class PhotoService {
 
   // Gestione del progresso delle sfide
   static async updateChallengeProgress(guildId: string, challengeId: number, completed: boolean): Promise<void> {
-    const progressKey = `progress_${guildId}_${challengeId}`;
-    localStorage.setItem(progressKey, JSON.stringify({
+    const progressData = {
       id: `${guildId}_${challengeId}`,
       guild_id: guildId,
       challenge_id: challengeId,
       completed: completed,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    }));
+    };
+
+    const progressKey = `progress_${guildId}_${challengeId}`;
+    localStorage.setItem(progressKey, JSON.stringify(progressData));
+    
+    // Sincronizza su Dropbox
+    await this.syncDataToDropbox(guildId);
   }
 
   // Ottieni il progresso di una gilda
   static async getGuildProgress(guildId: string): Promise<GuildProgress[]> {
+    // Prima carica i dati sincronizzati
+    await this.loadSyncedData(guildId);
+    
     const progress: GuildProgress[] = [];
     
     for (let i = 1; i <= 15; i++) {
@@ -172,5 +353,18 @@ export class PhotoService {
     }
     
     return progress.sort((a, b) => a.challenge_id - b.challenge_id);
+  }
+
+  // Forza sincronizzazione manuale
+  static async forceSyncGuild(guildId: string): Promise<void> {
+    console.log('Forzando sincronizzazione per gilda:', guildId);
+    
+    // Prima carica i dati remoti
+    await this.loadSyncedData(guildId);
+    
+    // Poi sincronizza i dati locali
+    await this.syncDataToDropbox(guildId);
+    
+    console.log('Sincronizzazione forzata completata');
   }
 }

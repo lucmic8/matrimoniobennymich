@@ -38,15 +38,28 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, isCamera: boolean = false) => {
     const file = event.target.files?.[0];
     if (file) {
+      console.log('File selezionato:', { 
+        name: file.name, 
+        size: file.size, 
+        type: file.type,
+        isCamera 
+      });
+      
       // Verifica che sia un'immagine
       if (!file.type.startsWith('image/')) {
         setError('Per favore seleziona un file immagine valido');
         return;
       }
 
-      // Verifica dimensione (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        setError('Il file è troppo grande. Dimensione massima: 10MB');
+      // Verifica dimensione (max 50MB per compatibilità mobile)
+      if (file.size > 50 * 1024 * 1024) {
+        setError('Il file è troppo grande. Dimensione massima: 50MB');
+        return;
+      }
+
+      // Verifica che il file non sia vuoto
+      if (file.size === 0) {
+        setError('Il file selezionato è vuoto o corrotto');
         return;
       }
 
@@ -66,6 +79,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
   const handleUpload = async () => {
     if (!selectedFile && !existingPhoto) return;
 
+    console.log('Inizio upload foto...');
     setIsUploading(true);
     setError(null);
     
@@ -74,6 +88,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
 
       if (selectedFile) {
         // Carica la nuova foto
+        console.log('Caricamento nuova foto...');
         photoUrl = await PhotoService.uploadPhoto(selectedFile, guildId, challengeId);
       } else {
         // Usa la foto esistente
@@ -82,6 +97,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
       
       // Notifica il componente padre
       onPhotoUploaded(challengeId, photoUrl);
+      console.log('Upload completato con successo');
       
       setUploadSuccess(true);
       
@@ -91,6 +107,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
       }, 2000);
     } catch (error) {
       console.error('Errore nel caricamento:', error);
+      console.error('Stack trace:', error);
       setError(error instanceof Error ? error.message : 'Errore nel caricamento della foto');
     } finally {
       setIsUploading(false);
@@ -161,7 +178,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                 <Check className="h-8 w-8 text-green-600" />
               </div>
               <h4 className="text-lg font-bold text-green-700 mb-2">Foto Salvata!</h4>
-              <p className="text-green-600">La tua prova è stata salvata con successo e sarà visibile a tutti i membri della cima su tutti i dispositivi.</p>
+              <p className="text-green-600">La tua prova è stata salvata e sincronizzata. Sarà visibile su tutti i tuoi dispositivi.</p>
             </div>
           ) : (
             <>
@@ -239,7 +256,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                   className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 px-4 rounded-lg transition-all font-medium flex items-center justify-center text-lg shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
                 >
                   <Camera className="h-6 w-6 mr-3" />
-                  Scatta una Foto
+                  📸 Scatta Foto
                 </button>
 
                 <div className="flex gap-3">
@@ -249,7 +266,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                     className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 px-4 rounded-lg transition-all font-medium flex items-center justify-center disabled:cursor-not-allowed"
                   >
                     <Upload className="h-4 w-4 mr-2" />
-                    Carica Foto
+                    📁 Carica da Galleria
                   </button>
                   
                   <button

@@ -67,6 +67,8 @@ function GuildPage() {
     
     setIsLoading(true);
     try {
+      console.log('Caricamento dati per gilda:', guildId);
+      
       // Carica le foto delle sfide
       const photos = await PhotoService.getGuildPhotos(guildId);
       const photoMap = new Map<number, string>();
@@ -85,40 +87,29 @@ function GuildPage() {
       });
       setCompletedChallenges(completedSet);
       
+      console.log('Dati caricati:', { 
+        photos: photos.length, 
+        completed: completedSet.size 
+      });
+      
     } catch (error) {
       console.error('Errore nel caricamento dei dati:', error);
-      // Fallback al localStorage in caso di errore
-      loadFromLocalStorage();
     } finally {
       setIsLoading(false);
     }
   };
 
-  const loadFromLocalStorage = () => {
-    if (!guildId) return;
-    
-    // Carica le sfide completate dal localStorage (fallback)
-    const completedKey = `completed_${guildId}`;
-    const savedCompleted = localStorage.getItem(completedKey);
-    if (savedCompleted) {
-      setCompletedChallenges(new Set(JSON.parse(savedCompleted)));
-    }
-    
-    // Carica le foto delle sfide dal localStorage (fallback)
-    const photoMap = new Map<number, string>();
-    challenges.forEach(challenge => {
-      const photoKey = `photo_${guildId}_${challenge.id}`;
-      const savedPhoto = localStorage.getItem(photoKey);
-      if (savedPhoto) {
-        photoMap.set(challenge.id, savedPhoto);
-      }
-    });
-    setChallengePhotos(photoMap);
-  };
-
   const refreshData = async () => {
     setIsRefreshing(true);
-    await loadGuildData();
+    try {
+      // Forza sincronizzazione
+      if (guildId) {
+        await PhotoService.forceSyncGuild(guildId);
+      }
+      await loadGuildData();
+    } catch (error) {
+      console.error('Errore nel refresh:', error);
+    }
     setIsRefreshing(false);
   };
 
@@ -156,15 +147,9 @@ function GuildPage() {
     // Aggiorna il progresso su Supabase
     try {
       await PhotoService.updateChallengeProgress(guildId, challengeId, isCompleted);
-      
-      // Salva anche nel localStorage come backup
-      const completedKey = `completed_${guildId}`;
-      localStorage.setItem(completedKey, JSON.stringify(Array.from(newCompleted)));
+      console.log('Progresso aggiornato per sfida:', challengeId);
     } catch (error) {
-      console.warn('Salvataggio progresso in modalità locale:', error);
-      // Salva nel localStorage (comportamento normale quando Supabase non è configurato)
-      const completedKey = `completed_${guildId}`;
-      localStorage.setItem(completedKey, JSON.stringify(Array.from(newCompleted)));
+      console.error('Errore aggiornamento progresso:', error);
     }
   };
 
@@ -192,29 +177,9 @@ function GuildPage() {
     // Aggiorna il progresso su Supabase
     try {
       await PhotoService.updateChallengeProgress(guildId, challengeId, !!photoUrl);
-      
-      // Salva anche nel localStorage come backup
-      const completedKey = `completed_${guildId}`;
-      localStorage.setItem(completedKey, JSON.stringify(Array.from(newCompleted)));
-      if (photoUrl) {
-        const photoKey = `photo_${guildId}_${challengeId}`;
-        localStorage.setItem(photoKey, photoUrl);
-      } else {
-        const photoKey = `photo_${guildId}_${challengeId}`;
-        localStorage.removeItem(photoKey);
-      }
+      console.log('Foto e progresso aggiornati per sfida:', challengeId);
     } catch (error) {
-      console.warn('Salvataggio in modalità locale:', error);
-      // Salva nel localStorage (questo è il comportamento normale quando Supabase non è configurato)
-      const completedKey = `completed_${guildId}`;
-      localStorage.setItem(completedKey, JSON.stringify(Array.from(newCompleted)));
-      if (photoUrl) {
-        const photoKey = `photo_${guildId}_${challengeId}`;
-        localStorage.setItem(photoKey, photoUrl);
-      } else {
-        const photoKey = `photo_${guildId}_${challengeId}`;
-        localStorage.removeItem(photoKey);
-      }
+      console.error('Errore aggiornamento foto:', error);
     }
   };
 
@@ -285,10 +250,11 @@ function GuildPage() {
                     <button
                       onClick={refreshData}
                       disabled={isRefreshing}
-                      className="text-amber-600 hover:text-amber-800 transition-colors disabled:opacity-50"
-                      title="Aggiorna dati"
+                      className="text-amber-600 hover:text-amber-800 transition-colors disabled:opacity-50 flex items-center gap-1"
+                      title="Sincronizza dati tra dispositivi"
                     >
                       <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                      {isRefreshing && <span className="text-xs">Sync...</span>}
                     </button>
                   </div>
                 </div>

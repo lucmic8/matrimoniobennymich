@@ -53,20 +53,40 @@ export class DropboxService {
     }
 
     try {
+      console.log('Upload Dropbox - File info:', { 
+        name: file.name, 
+        size: file.size, 
+        type: file.type 
+      });
+      
       const fileExt = file.name.split('.').pop() || 'jpg';
       const fileName = `${guildId}_challenge_${challengeId}_${Date.now()}.${fileExt}`;
       const filePath = `/sfida-cime/${guildId}/${fileName}`;
 
-      // Converti il file in ArrayBuffer
-      const arrayBuffer = await file.arrayBuffer();
+      // Converti il file in ArrayBuffer con gestione errori migliorata
+      let arrayBuffer: ArrayBuffer;
+      try {
+        arrayBuffer = await file.arrayBuffer();
+        console.log('ArrayBuffer creato, dimensione:', arrayBuffer.byteLength);
+      } catch (error) {
+        console.error('Errore nella conversione ArrayBuffer:', error);
+        throw new Error('Impossibile elaborare il file immagine');
+      }
+
+      if (arrayBuffer.byteLength === 0) {
+        throw new Error('File vuoto o corrotto');
+      }
 
       // Carica il file su Dropbox
+      console.log('Caricamento su Dropbox path:', filePath);
       const response = await this.dbx.filesUpload({
         path: filePath,
         contents: arrayBuffer,
         mode: 'overwrite',
         autorename: true
       });
+      
+      console.log('Upload completato:', response.result.name);
 
       // Crea un link condiviso per il file
       const sharedLink = await this.dbx.sharingCreateSharedLinkWithSettings({
@@ -78,6 +98,7 @@ export class DropboxService {
 
       // Converti il link Dropbox in un link diretto per le immagini
       const directLink = sharedLink.result.url.replace('?dl=0', '?raw=1');
+      console.log('Link diretto creato:', directLink);
       
       return directLink;
     } catch (error) {
@@ -156,6 +177,55 @@ export class DropboxService {
     } catch (error) {
       console.error('Errore nel listing delle foto:', error);
       return [];
+    }
+  }
+
+  // Carica un file di dati JSON su Dropbox
+  static async uploadDataFile(file: File, guildId: string): Promise<void> {
+    if (!this.dbx) {
+      console.warn('Dropbox non configurato per upload dati');
+      return;
+    }
+
+    try {
+      const filePath = `/sfida-cime/${guildId}/${guildId}_data.json`;
+      const arrayBuffer = await file.arrayBuffer();
+
+      await this.dbx.filesUpload({
+        path: filePath,
+        contents: arrayBuffer,
+        mode: 'overwrite',
+        autorename: false
+      });
+
+      console.log('File dati sincronizzato su Dropbox:', filePath);
+    } catch (error) {
+      console.error('Errore nel caricamento file dati:', error);
+      // Non lanciare errore per non bloccare l'operazione principale
+    }
+  }
+
+  // Carica un file di dati JSON da Dropbox
+  static async loadDataFile(guildId: string): Promise<any> {
+    if (!this.dbx) {
+      return null;
+    }
+
+    try {
+      const filePath = `/sfida-cime/${guildId}/${guildId}_data.json`;
+      
+      const response = await this.dbx.filesDownload({
+        path: filePath
+      });
+
+      // Converti il blob in testo
+      const fileBlob = (response.result as any).fileBinary;
+      const text = new TextDecoder().decode(fileBlob);
+      
+      return JSON.parse(text);
+    } catch (error) {
+      console.log('Nessun file dati trovato su Dropbox per gilda:', guildId);
+      return null;
     }
   }
 
