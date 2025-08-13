@@ -46,13 +46,13 @@ function GuildPage() {
     
     initializeData();
     
-    // Polling per sincronizzazione automatica ogni 10 secondi
+    // Polling per sincronizzazione automatica ogni 15 secondi
     const syncInterval = setInterval(() => {
       if (guildId && !isRefreshing) {
         console.log('🔄 Auto-sync per gilda:', guildId);
         loadGuildData();
       }
-    }, 10000);
+    }, 15000);
     
     return () => clearInterval(syncInterval);
   }, [guildId]);
@@ -81,6 +81,9 @@ function GuildPage() {
     setIsLoading(true);
     try {
       console.log('Caricamento dati per gilda:', guildId);
+      
+      // PRIMA carica i dati sincronizzati da Dropbox
+      await PhotoService.loadSyncedData(guildId);
       
       // Carica le foto delle sfide
       const photos = await PhotoService.getGuildPhotos(guildId);

@@ -234,7 +234,6 @@ export class PhotoService {
         progress: Object.keys(syncedData.progress || {}).length
       });
 
-      // FORZA SEMPRE L'APPLICAZIONE DEI DATI REMOTI per debug
       const localLastSync = localStorage.getItem(`lastSync_${guildId}`);
       
       console.log('🕐 [SYNC] Timestamp confronto:', { 
@@ -242,8 +241,16 @@ export class PhotoService {
         remoto: syncedData.lastSync
       });
       
-      // TEMPORANEO: Applica sempre i dati remoti per debug
-      console.log('🔄 [SYNC] Applicazione FORZATA dati remoti per debug');
+      // Applica i dati remoti se sono più recenti o se non ci sono dati locali
+      const shouldApplyRemoteData = !localLastSync || 
+        (syncedData.lastSync && new Date(syncedData.lastSync) > new Date(localLastSync));
+      
+      if (!shouldApplyRemoteData) {
+        console.log('⏭️ [SYNC] Dati locali più recenti, skip applicazione');
+        return;
+      }
+      
+      console.log('🔄 [SYNC] Applicazione dati remoti più recenti');
 
       let photosApplied = 0;
       let progressApplied = 0;
@@ -284,9 +291,7 @@ export class PhotoService {
 
   // Ottieni tutte le foto di una gilda
   static async getGuildPhotos(guildId: string): Promise<ChallengePhoto[]> {
-    // Prima carica i dati sincronizzati
-    await this.loadSyncedData(guildId);
-    
+    // I dati sincronizzati sono già stati caricati in loadGuildData
     const photos: ChallengePhoto[] = [];
     
     for (let i = 1; i <= 15; i++) {
@@ -379,9 +384,7 @@ export class PhotoService {
 
   // Ottieni il progresso di una gilda
   static async getGuildProgress(guildId: string): Promise<GuildProgress[]> {
-    // Prima carica i dati sincronizzati
-    await this.loadSyncedData(guildId);
-    
+    // I dati sincronizzati sono già stati caricati in loadGuildData
     const progress: GuildProgress[] = [];
     
     for (let i = 1; i <= 15; i++) {
