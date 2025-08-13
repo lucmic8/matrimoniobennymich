@@ -39,15 +39,20 @@ function GuildPage() {
 
   // Carica i dati da Supabase al mount del componente
   useEffect(() => {
-    loadGuildData();
-    autoConfigureDropbox();
+    const initializeData = async () => {
+      await autoConfigureDropbox();
+      await loadGuildData();
+    };
     
-    // Polling per sincronizzazione automatica ogni 30 secondi
+    initializeData();
+    
+    // Polling per sincronizzazione automatica ogni 10 secondi
     const syncInterval = setInterval(() => {
       if (guildId && !isRefreshing) {
+        console.log('🔄 Auto-sync per gilda:', guildId);
         loadGuildData();
       }
-    }, 30000);
+    }, 10000);
     
     return () => clearInterval(syncInterval);
   }, [guildId]);

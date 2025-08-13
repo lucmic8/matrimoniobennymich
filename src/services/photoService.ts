@@ -212,45 +212,39 @@ export class PhotoService {
 
   // Carica i dati sincronizzati da Dropbox
   static async loadSyncedData(guildId: string): Promise<void> {
-    console.log('🔄 Caricamento dati sincronizzati per gilda:', guildId);
+    console.log('🔄 [SYNC] Caricamento dati per gilda:', guildId);
     
     // Assicurati che Dropbox sia sempre configurato
     if (!DropboxService.isConfigured()) {
-      console.log('⚙️ Dropbox non configurato, inizializzo automaticamente...');
+      console.log('⚙️ [SYNC] Dropbox non configurato, inizializzo...');
       DropboxService.initializeWithDefaultToken();
     }
 
     try {
       const syncedData = await DropboxService.loadDataFile(guildId);
       if (!syncedData) {
-        console.log('📭 Nessun dato sincronizzato trovato per:', guildId);
+        console.log('📭 [SYNC] Nessun dato remoto per:', guildId);
         return;
       }
 
-      // Controlla se i dati remoti sono più recenti
+      console.log('📊 [SYNC] Dati remoti trovati:', {
+        guildId,
+        lastSync: syncedData.lastSync,
+        photos: Object.keys(syncedData.photos || {}).length,
+        progress: Object.keys(syncedData.progress || {}).length
+      });
+
+      // FORZA SEMPRE L'APPLICAZIONE DEI DATI REMOTI per debug
       const localLastSync = localStorage.getItem(`lastSync_${guildId}`);
-      const remoteLastSync = syncedData.lastSync;
       
-      console.log('🕐 Confronto timestamp per', guildId, ':', { 
+      console.log('🕐 [SYNC] Timestamp confronto:', { 
         locale: localLastSync, 
-        remoto: remoteLastSync,
-        fotosRemote: Object.keys(syncedData.photos || {}).length,
-        progressRemoto: Object.keys(syncedData.progress || {}).length
+        remoto: syncedData.lastSync
       });
       
-      if (localLastSync && remoteLastSync) {
-        const localDate = new Date(localLastSync);
-        const remoteDate = new Date(remoteLastSync);
-        
-        if (localDate > remoteDate) {
-          console.log('✅ Dati locali più recenti per:', guildId);
-          return;
-        }
-      }
+      // TEMPORANEO: Applica sempre i dati remoti per debug
+      console.log('🔄 [SYNC] Applicazione FORZATA dati remoti per debug');
 
-      // Applica i dati sincronizzati
-      console.log('📥 Applicazione dati sincronizzati per:', guildId);
-      
       let photosApplied = 0;
       let progressApplied = 0;
       
@@ -259,6 +253,7 @@ export class PhotoService {
         const photoKey = `photo_${guildId}_${challengeId}`;
         const metadataKey = `metadata_${guildId}_${challengeId}`;
         
+        console.log(`📸 [SYNC] Applicando foto ${challengeId}:`, (metadata as any).photo_url?.substring(0, 50) + '...');
         localStorage.setItem(photoKey, (metadata as any).photo_url);
         localStorage.setItem(metadataKey, JSON.stringify(metadata));
         photosApplied++;
@@ -267,6 +262,7 @@ export class PhotoService {
       // Applica progresso
       Object.entries(syncedData.progress || {}).forEach(([challengeId, progress]) => {
         const progressKey = `progress_${guildId}_${challengeId}`;
+        console.log(`✅ [SYNC] Applicando progress ${challengeId}:`, (progress as any).completed);
         localStorage.setItem(progressKey, JSON.stringify(progress));
         progressApplied++;
       });
@@ -274,14 +270,14 @@ export class PhotoService {
       // Aggiorna timestamp locale
       localStorage.setItem(`lastSync_${guildId}`, syncedData.lastSync);
       
-      console.log('✅ Sincronizzazione completata:', {
+      console.log('✅ [SYNC] Completata per:', {
         guildId,
         fotosApplicate: photosApplied,
         progressApplicato: progressApplied,
         timestamp: syncedData.lastSync
       });
     } catch (error) {
-      console.error('❌ Errore nel caricamento dati sincronizzati per', guildId, ':', error);
+      console.error('❌ [SYNC] Errore per', guildId, ':', error);
       // Non lanciare errore per non bloccare l'app
     }
   }
