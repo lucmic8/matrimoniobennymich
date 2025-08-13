@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -18,7 +19,38 @@ function GuildPage() {
   const { guildId } = useParams<{ guildId: string }>();
   const navigate = useNavigate();
   const [completedChallenges, setCompletedChallenges] = useState<Set<number>>(new Set());
+  const [challengePhotos, setChallengePhotos] = useState<Map<number, string>>(new Map());
   const [uploadingChallenge, setUploadingChallenge] = useState<number | null>(null);
+
+  // Carica i dati salvati al mount del componente
+  useEffect(() => {
+    if (!guildId) return;
+    
+    // Carica le sfide completate
+    const completedKey = `completed_${guildId}`;
+    const savedCompleted = localStorage.getItem(completedKey);
+    if (savedCompleted) {
+      setCompletedChallenges(new Set(JSON.parse(savedCompleted)));
+    }
+    
+    // Carica le foto delle sfide
+    const photoMap = new Map<number, string>();
+    challenges.forEach(challenge => {
+      const photoKey = `photo_${guildId}_${challenge.id}`;
+      const savedPhoto = localStorage.getItem(photoKey);
+      if (savedPhoto) {
+        photoMap.set(challenge.id, savedPhoto);
+      }
+    });
+    setChallengePhotos(photoMap);
+  }, [guildId]);
+
+  // Salva le sfide completate quando cambiano
+  useEffect(() => {
+    if (!guildId) return;
+    const completedKey = `completed_${guildId}`;
+    localStorage.setItem(completedKey, JSON.stringify(Array.from(completedChallenges)));
+  }, [completedChallenges, guildId]);
 
   const guild = guilds.find(g => g.id === guildId);
 
@@ -45,6 +77,18 @@ function GuildPage() {
     } else {
       newCompleted.add(challengeId);
     }
+    setCompletedChallenges(newCompleted);
+  };
+
+  const handlePhotoUploaded = (challengeId: number, photoUrl: string) => {
+    // Aggiorna la mappa delle foto
+    const newPhotos = new Map(challengePhotos);
+    newPhotos.set(challengeId, photoUrl);
+    setChallengePhotos(newPhotos);
+    
+    // Marca automaticamente la sfida come completata
+    const newCompleted = new Set(completedChallenges);
+    newCompleted.add(challengeId);
     setCompletedChallenges(newCompleted);
   };
 
@@ -189,13 +233,24 @@ function GuildPage() {
                           <span className="font-medium">Difficoltà: {challenge.difficulty}</span>
                         </div>
                         
-                        <button 
-                          onClick={() => setUploadingChallenge(challenge.id)}
-                          className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-200 flex items-center text-sm font-medium shadow-md hover:shadow-lg"
-                        >
-                          <Upload className="h-4 w-4 mr-2" />
-                          Carica la Prova
-                        </button>
+                        <div className="flex items-center gap-2">
+                          {challengePhotos.has(challenge.id) && (
+                            <div className="bg-green-100 rounded-full p-1 border border-green-300">
+                              <Camera className="h-4 w-4 text-green-600" />
+                            </div>
+                          )}
+                          <button 
+                            onClick={() => setUploadingChallenge(challenge.id)}
+                            className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center text-sm font-medium shadow-md hover:shadow-lg ${
+                              challengePhotos.has(challenge.id)
+                                ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white'
+                                : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white'
+                            }`}
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            {challengePhotos.has(challenge.id) ? 'Gestisci Foto' : 'Carica la Prova'}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -226,7 +281,10 @@ function GuildPage() {
         <PhotoUpload
           challengeId={uploadingChallenge}
           challengeTitle={challenges.find(c => c.id === uploadingChallenge)?.title || ''}
+          guildId={guildId || ''}
           onClose={() => setUploadingChallenge(null)}
+          onPhotoUploaded={handlePhotoUploaded}
+          existingPhoto={challengePhotos.get(uploadingChallenge)}
         />
       )}
     </div>

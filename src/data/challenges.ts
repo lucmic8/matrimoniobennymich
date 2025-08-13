@@ -119,5 +119,13 @@ export const challenges: Challenge[] = [
     icon: '😴',
     difficulty: 'Facile',
     tags: ['Recitazione', 'Divertimento', 'Gruppo']
+  },
+  {
+    id: 15,
+    title: 'Il Momento Culinario',
+    description: 'Immortalate il momento più divertente legato al cibo: qualcuno che assaggia un piatto particolare, una reazione buffa a un sapore, o il momento in cui qualcuno si accorge che il piatto è finito!',
+    icon: '🍴',
+    difficulty: 'Facile',
+    tags: ['Cibo', 'Reazioni', 'Spontaneità']
   }
 ];
