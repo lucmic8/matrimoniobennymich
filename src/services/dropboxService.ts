@@ -629,59 +629,15 @@ export class DropboxService {
 
   // Carica un file di dati JSON su Dropbox
   static async uploadDataFile(file: File, guildId: string): Promise<void> {
-    if (!this.dbx) {
-      console.warn('Dropbox non configurato per upload dati');
-      return;
-    }
-
-    try {
-      const filePath = `/sfida-cime/${guildId}/${guildId}_data.json`;
-      const arrayBuffer = await file.arrayBuffer();
-
-      await this.dbx.filesUpload({
-        path: filePath,
-        contents: arrayBuffer,
-        mode: 'overwrite',
-        autorename: false
-      });
-
-      console.log('File dati sincronizzato su Dropbox:', filePath);
-    } catch (error) {
-      console.error('Errore nel caricamento file dati:', error);
-      // Non lanciare errore per non bloccare l'operazione principale
-    }
+    // Funzione rimossa - non più utilizzata
+    console.log('uploadDataFile: Funzione deprecata');
   }
 
   // Carica un file di dati JSON da Dropbox
   static async loadDataFile(guildId: string): Promise<any> {
-    if (!this.dbx) {
-      console.log('❌ [DROPBOX] Non configurato per loadDataFile');
-      return null;
-    }
-
-    try {
-      const filePath = `/sfida-cime/${guildId}/${guildId}_data.json`;
-      console.log('📂 [DROPBOX] Caricamento file:', filePath);
-      
-      const response = await this.dbx.filesDownload({
-        path: filePath
-      });
-
-      // Converti il blob in testo
-      const fileBlob = (response.result as any).fileBinary;
-      const text = new TextDecoder().decode(fileBlob);
-      
-      console.log('📄 [DROPBOX] File caricato:', {
-        path: filePath,
-        size: text.length,
-        preview: text.substring(0, 200) + '...'
-      });
-      
-      return JSON.parse(text);
-    } catch (error) {
-      console.log('📭 [DROPBOX] Nessun file per gilda:', guildId);
-      return null;
-    }
+    // Funzione rimossa - non più utilizzata
+    console.log('loadDataFile: Funzione deprecata');
+    return null;
   }
 
   // Ottieni informazioni sull'account Dropbox

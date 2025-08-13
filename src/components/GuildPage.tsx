@@ -27,17 +27,15 @@ function GuildPage() {
   const [challengePhotos, setChallengePhotos] = useState<Map<number, string>>(new Map());
   const [uploadingChallenge, setUploadingChallenge] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showDropboxConfig, setShowDropboxConfig] = useState(false);
   const [dropboxConfigured, setDropboxConfigured] = useState(false);
-  const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
 
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Carica i dati da Supabase al mount del componente
+  // Carica i dati al mount del componente
   useEffect(() => {
     const initializeData = async () => {
       await autoConfigureDropbox();
@@ -45,16 +43,6 @@ function GuildPage() {
     };
     
     initializeData();
-    
-    // Polling per sincronizzazione automatica ogni 15 secondi
-    const syncInterval = setInterval(() => {
-      if (guildId && !isRefreshing) {
-        console.log('🔄 Auto-sync per gilda:', guildId);
-        loadGuildData();
-      }
-    }, 15000);
-    
-    return () => clearInterval(syncInterval);
   }, [guildId]);
 
   const autoConfigureDropbox = () => {
@@ -63,7 +51,7 @@ function GuildPage() {
       const initialized = DropboxService.initializeWithDefaultToken();
       if (initialized) {
         setDropboxConfigured(true);
-        console.log('✅ Dropbox configurato automaticamente con token utente');
+        console.log('✅ Dropbox configurato automaticamente');
         return;
       }
       
@@ -81,9 +69,6 @@ function GuildPage() {
     setIsLoading(true);
     try {
       console.log('Caricamento dati per gilda:', guildId);
-      
-      // PRIMA carica i dati sincronizzati da Dropbox
-      await PhotoService.loadSyncedData(guildId);
       
       // Carica le foto delle sfide
       const photos = await PhotoService.getGuildPhotos(guildId);
@@ -108,8 +93,6 @@ function GuildPage() {
         completed: completedSet.size 
       });
       
-      setLastSyncTime(new Date().toLocaleTimeString('it-IT'));
-      
     } catch (error) {
       console.error('Errore nel caricamento dei dati:', error);
     } finally {
@@ -117,19 +100,6 @@ function GuildPage() {
     }
   };
 
-  const refreshData = async () => {
-    setIsRefreshing(true);
-    try {
-      // Forza sincronizzazione
-      if (guildId) {
-        await PhotoService.forceSyncGuild(guildId);
-      }
-      await loadGuildData();
-    } catch (error) {
-      console.error('Errore nel refresh:', error);
-    }
-    setIsRefreshing(false);
-  };
 
   const guild = guilds.find(g => g.id === guildId);
 
@@ -263,18 +233,7 @@ function GuildPage() {
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-amber-700 font-semibold">Progresso della Sfida</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-amber-800">{completedChallenges.size}/{challenges.length} Prove</span>
-                    <button
-                      onClick={refreshData}
-                      disabled={isRefreshing}
-                      className="text-amber-600 hover:text-amber-800 transition-colors disabled:opacity-50 flex items-center gap-1 text-sm"
-                      title="Sincronizza dati tra dispositivi"
-                    >
-                      <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                      {isRefreshing ? 'Sync...' : 'Sync'}
-                    </button>
-                  </div>
+                  <span className="text-amber-800">{completedChallenges.size}/{challenges.length} Prove</span>
                 </div>
                 <div className="w-full bg-amber-200/50 rounded-full h-3 border border-amber-300">
                   <div 
@@ -287,11 +246,6 @@ function GuildPage() {
                    completionPercentage >= 50 ? '⚔️ Ottimo lavoro, continuate così!' : 
                    '🗡️ La vostra avventura è appena iniziata!'}
                 </p>
-                {lastSyncTime && (
-                  <p className="text-xs text-amber-600 mt-1">
-                    Ultimo aggiornamento: {lastSyncTime}
-                  </p>
-                )}
               </div>
             </div>
           </div>

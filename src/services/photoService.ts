@@ -149,149 +149,9 @@ export class PhotoService {
     localStorage.setItem(metadataKey, JSON.stringify(metadata));
   }
 
-  // Sincronizza tutti i dati di una gilda su Dropbox
-  static async syncDataToDropbox(guildId: string): Promise<void> {
-    // Assicurati che Dropbox sia sempre configurato
-    if (!DropboxService.isConfigured()) {
-      console.log('Dropbox non configurato, inizializzo automaticamente...');
-      DropboxService.initializeWithDefaultToken();
-    }
-
-    try {
-      // Raccogli tutti i dati della gilda
-      const guildData = {
-        photos: {} as Record<number, any>,
-        progress: {} as Record<number, any>,
-        lastSync: new Date().toISOString()
-      };
-
-      // Raccogli foto e metadati
-      for (let i = 1; i <= 15; i++) {
-        const metadataKey = `metadata_${guildId}_${i}`;
-        const progressKey = `progress_${guildId}_${i}`;
-        
-        const photoMetadata = localStorage.getItem(metadataKey);
-        const progressData = localStorage.getItem(progressKey);
-        
-        if (photoMetadata) {
-          try {
-            guildData.photos[i] = JSON.parse(photoMetadata);
-          } catch (e) {
-            console.warn(`Errore parsing metadata per sfida ${i}:`, e);
-          }
-        }
-        
-        if (progressData) {
-          try {
-            guildData.progress[i] = JSON.parse(progressData);
-          } catch (e) {
-            console.warn(`Errore parsing progress per sfida ${i}:`, e);
-          }
-        }
-      }
-
-      // Salva il file di sincronizzazione su Dropbox
-      const dataBlob = new Blob([JSON.stringify(guildData, null, 2)], { 
-        type: 'application/json' 
-      });
-      const dataFile = new File([dataBlob], `${guildId}_data.json`, { 
-        type: 'application/json' 
-      });
-
-      await DropboxService.uploadDataFile(dataFile, guildId);
-      
-      // Salva timestamp ultima sincronizzazione
-      localStorage.setItem(`lastSync_${guildId}`, new Date().toISOString());
-      
-      console.log('Sincronizzazione completata per gilda:', guildId);
-    } catch (error) {
-      console.error('Errore nella sincronizzazione:', error);
-      // Non lanciare errore per non bloccare l'operazione principale
-    }
-  }
-
-  // Carica i dati sincronizzati da Dropbox
-  static async loadSyncedData(guildId: string): Promise<void> {
-    console.log('🔄 [SYNC] Caricamento dati per gilda:', guildId);
-    
-    // Assicurati che Dropbox sia sempre configurato
-    if (!DropboxService.isConfigured()) {
-      console.log('⚙️ [SYNC] Dropbox non configurato, inizializzo...');
-      DropboxService.initializeWithDefaultToken();
-    }
-
-    try {
-      const syncedData = await DropboxService.loadDataFile(guildId);
-      if (!syncedData) {
-        console.log('📭 [SYNC] Nessun dato remoto per:', guildId);
-        return;
-      }
-
-      console.log('📊 [SYNC] Dati remoti trovati:', {
-        guildId,
-        lastSync: syncedData.lastSync,
-        photos: Object.keys(syncedData.photos || {}).length,
-        progress: Object.keys(syncedData.progress || {}).length
-      });
-
-      const localLastSync = localStorage.getItem(`lastSync_${guildId}`);
-      
-      console.log('🕐 [SYNC] Timestamp confronto:', { 
-        locale: localLastSync, 
-        remoto: syncedData.lastSync
-      });
-      
-      // Applica i dati remoti se sono più recenti o se non ci sono dati locali
-      const shouldApplyRemoteData = !localLastSync || 
-        (syncedData.lastSync && new Date(syncedData.lastSync) > new Date(localLastSync));
-      
-      if (!shouldApplyRemoteData) {
-        console.log('⏭️ [SYNC] Dati locali più recenti, skip applicazione');
-        return;
-      }
-      
-      console.log('🔄 [SYNC] Applicazione dati remoti più recenti');
-
-      let photosApplied = 0;
-      let progressApplied = 0;
-      
-      // Applica foto e metadati
-      Object.entries(syncedData.photos || {}).forEach(([challengeId, metadata]) => {
-        const photoKey = `photo_${guildId}_${challengeId}`;
-        const metadataKey = `metadata_${guildId}_${challengeId}`;
-        
-        console.log(`📸 [SYNC] Applicando foto ${challengeId}:`, (metadata as any).photo_url?.substring(0, 50) + '...');
-        localStorage.setItem(photoKey, (metadata as any).photo_url);
-        localStorage.setItem(metadataKey, JSON.stringify(metadata));
-        photosApplied++;
-      });
-
-      // Applica progresso
-      Object.entries(syncedData.progress || {}).forEach(([challengeId, progress]) => {
-        const progressKey = `progress_${guildId}_${challengeId}`;
-        console.log(`✅ [SYNC] Applicando progress ${challengeId}:`, (progress as any).completed);
-        localStorage.setItem(progressKey, JSON.stringify(progress));
-        progressApplied++;
-      });
-
-      // Aggiorna timestamp locale
-      localStorage.setItem(`lastSync_${guildId}`, syncedData.lastSync);
-      
-      console.log('✅ [SYNC] Completata per:', {
-        guildId,
-        fotosApplicate: photosApplied,
-        progressApplicato: progressApplied,
-        timestamp: syncedData.lastSync
-      });
-    } catch (error) {
-      console.error('❌ [SYNC] Errore per', guildId, ':', error);
-      // Non lanciare errore per non bloccare l'app
-    }
-  }
 
   // Ottieni tutte le foto di una gilda
   static async getGuildPhotos(guildId: string): Promise<ChallengePhoto[]> {
-    // I dati sincronizzati sono già stati caricati in loadGuildData
     const photos: ChallengePhoto[] = [];
     
     for (let i = 1; i <= 15; i++) {
@@ -302,31 +162,33 @@ export class PhotoService {
         try {
           const metadata = JSON.parse(savedMetadata);
           photos.push(metadata);
+          console.log(`📸 Foto trovata per sfida ${i}:`, metadata.photo_url?.substring(0, 50) + '...');
         } catch (error) {
           console.error('Errore nel parsing dei metadati:', error);
         }
       }
     }
     
+    console.log(`📊 Totale foto caricate per ${guildId}:`, photos.length);
     return photos.sort((a, b) => a.challenge_id - b.challenge_id);
   }
 
   // Ottieni una foto specifica
   static async getChallengePhoto(guildId: string, challengeId: number): Promise<ChallengePhoto | null> {
-    // Prima carica i dati sincronizzati
-    await this.loadSyncedData(guildId);
-    
     const metadataKey = `metadata_${guildId}_${challengeId}`;
     const savedMetadata = localStorage.getItem(metadataKey);
     
     if (savedMetadata) {
       try {
-        return JSON.parse(savedMetadata);
+        const metadata = JSON.parse(savedMetadata);
+        console.log(`📸 Foto specifica trovata per sfida ${challengeId}:`, metadata.photo_url?.substring(0, 50) + '...');
+        return metadata;
       } catch (error) {
         console.error('Errore nel parsing dei metadati:', error);
       }
     }
     
+    console.log(`📭 Nessuna foto trovata per sfida ${challengeId}`);
     return null;
   }
 
@@ -355,8 +217,7 @@ export class PhotoService {
       localStorage.removeItem(photoKey);
       localStorage.removeItem(metadataKey);
       
-      // Sincronizza la rimozione
-      await this.syncDataToDropbox(guildId);
+      console.log('🗑️ Foto eliminata:', { photoKey, metadataKey });
       
     } catch (error) {
       console.error('Errore nell\'eliminazione della foto:', error);
@@ -378,13 +239,11 @@ export class PhotoService {
     const progressKey = `progress_${guildId}_${challengeId}`;
     localStorage.setItem(progressKey, JSON.stringify(progressData));
     
-    // Sincronizza su Dropbox
-    await this.syncDataToDropbox(guildId);
+    console.log('✅ Progresso aggiornato:', { challengeId, completed });
   }
 
   // Ottieni il progresso di una gilda
   static async getGuildProgress(guildId: string): Promise<GuildProgress[]> {
-    // I dati sincronizzati sono già stati caricati in loadGuildData
     const progress: GuildProgress[] = [];
     
     for (let i = 1; i <= 15; i++) {
@@ -395,25 +254,15 @@ export class PhotoService {
         try {
           const parsed = JSON.parse(savedProgress);
           progress.push(parsed);
+          console.log(`✅ Progresso trovato per sfida ${i}:`, parsed.completed);
         } catch (error) {
           console.error('Errore nel parsing del progresso:', error);
         }
       }
     }
     
+    console.log(`📊 Totale progress caricati per ${guildId}:`, progress.length);
     return progress.sort((a, b) => a.challenge_id - b.challenge_id);
   }
 
-  // Forza sincronizzazione manuale
-  static async forceSyncGuild(guildId: string): Promise<void> {
-    console.log('🔄 Forzando sincronizzazione per gilda:', guildId);
-    
-    // Prima carica i dati remoti
-    await this.loadSyncedData(guildId);
-    
-    // Poi sincronizza i dati locali
-    await this.syncDataToDropbox(guildId);
-    
-    console.log('✅ Sincronizzazione forzata completata');
-  }
 }
