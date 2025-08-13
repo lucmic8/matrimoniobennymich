@@ -14,8 +14,7 @@ const app = express();
 app.use(cors());
 app.use(fileUpload({
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max
-  abortOnLimit: true,
-  responseOnLimit: 'File troppo grande (max 50MB)'
+  abortOnLimit: true
 }));
 app.use(express.json());
 
@@ -30,6 +29,15 @@ app.post('/api/upload-dropbox', async (req, res) => {
   console.log('📤 Richiesta upload ricevuta');
   
   try {
+    // Check for file size limit error
+    if (req.fileUploadError && req.fileUploadError.code === 'LIMIT_FILE_SIZE') {
+      console.log('❌ File troppo grande');
+      return res.status(413).json({ 
+        success: false, 
+        error: 'File troppo grande (max 50MB)' 
+      });
+    }
+
     // Verifica presenza file
     if (!req.files || !req.files.file) {
       console.log('❌ Nessun file nella richiesta');
