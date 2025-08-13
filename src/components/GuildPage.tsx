@@ -44,9 +44,10 @@ function GuildPage() {
 
   const autoConfigureDropbox = () => {
     try {
-      // Prova prima l'inizializzazione automatica
+      // Inizializza sempre Dropbox automaticamente
       if (DropboxService.initializeWithDefaultToken()) {
         setDropboxConfigured(true);
+        console.log('Dropbox configurato automaticamente');
         return;
       }
       
@@ -55,6 +56,9 @@ function GuildPage() {
       if (savedToken) {
         DropboxService.initialize(savedToken);
         setDropboxConfigured(DropboxService.isConfigured());
+      } else {
+        console.error('Impossibile configurare Dropbox automaticamente');
+        setDropboxConfigured(false);
       }
     } catch (error) {
       console.warn('Errore configurazione Dropbox:', error);
@@ -280,18 +284,19 @@ function GuildPage() {
                   onClick={() => setShowDropboxConfig(true)}
                   className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center text-sm font-medium shadow-md hover:shadow-lg ${
                     dropboxConfigured
-                      ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white'
+                      ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white cursor-default'
                       : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white'
                   }`}
+                  disabled={dropboxConfigured}
                 >
                   <Cloud className="h-4 w-4 mr-2" />
-                  {dropboxConfigured ? 'Dropbox Connesso' : 'Configura Dropbox'}
+                  {dropboxConfigured ? '✅ Dropbox Attivo' : 'Configura Dropbox'}
                 </button>
               </div>
               <p className="text-sm text-amber-600 mt-1">
                 {dropboxConfigured 
-                  ? ''
-                  : 'Configura Dropbox per salvare le foto nel cloud e condividerle tra dispositivi'
+                  ? 'Tutte le foto vengono salvate automaticamente su Dropbox e sincronizzate tra dispositivi'
+                  : 'ATTENZIONE: Dropbox non configurato. Le foto potrebbero non sincronizzarsi tra dispositivi'
                 }
               </p>
             </div>

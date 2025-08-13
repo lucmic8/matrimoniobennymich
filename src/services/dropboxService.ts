@@ -22,11 +22,13 @@ export class DropboxService {
     try {
       if (this.DEFAULT_ACCESS_TOKEN && this.DEFAULT_ACCESS_TOKEN.startsWith('sl.')) {
         this.initialize(this.DEFAULT_ACCESS_TOKEN);
+        console.log('Dropbox inizializzato automaticamente con token predefinito');
         return true;
       }
     } catch (error) {
       console.warn('Errore inizializzazione automatica Dropbox:', error);
     }
+    console.error('Token predefinito non valido o mancante');
     return false;
   }
 

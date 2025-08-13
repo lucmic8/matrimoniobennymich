@@ -39,29 +39,27 @@ export class PhotoService {
         throw new Error('Il file è troppo grande. Dimensione massima: 50MB');
       }
 
-      let photoUrl: string;
-
-      // Prova prima con Dropbox se configurato
-      if (DropboxService.isConfigured()) {
-        try {
-          console.log('Caricamento su Dropbox...');
-          photoUrl = await DropboxService.uploadPhoto(file, guildId, challengeId);
-          console.log('Caricamento Dropbox completato:', photoUrl);
-        } catch (error) {
-          console.error('Errore Dropbox, uso fallback locale:', error);
-          // Fallback al base64 locale
-          photoUrl = await PhotoService.fileToBase64(file);
+      // Assicurati che Dropbox sia sempre configurato
+      if (!DropboxService.isConfigured()) {
+        console.log('Dropbox non configurato, inizializzo automaticamente...');
+        if (!DropboxService.initializeWithDefaultToken()) {
+          throw new Error('Impossibile configurare Dropbox automaticamente');
         }
-      } else {
-        // Usa base64 locale se Dropbox non è configurato
-        console.log('Dropbox non configurato, uso storage locale...');
-        photoUrl = await PhotoService.fileToBase64(file);
       }
 
-      // Salva i metadati sia localmente che su Dropbox
+      // Carica sempre su Dropbox
+      let photoUrl: string;
+      try {
+        console.log('Caricamento su Dropbox...');
+        photoUrl = await DropboxService.uploadPhoto(file, guildId, challengeId);
+        console.log('Caricamento Dropbox completato:', photoUrl);
+      } catch (error) {
+        console.error('Errore Dropbox:', error);
+        throw new Error('Impossibile caricare la foto su Dropbox: ' + (error instanceof Error ? error.message : 'Errore sconosciuto'));
+      }
+
+      // Salva i metadati localmente e sincronizza
       await this.savePhotoMetadata(guildId, challengeId, photoUrl);
-      
-      // Sincronizza i dati su Dropbox
       await this.syncDataToDropbox(guildId);
       
       console.log('Caricamento completato con successo');
@@ -123,9 +121,13 @@ export class PhotoService {
 
   // Sincronizza tutti i dati di una gilda su Dropbox
   static async syncDataToDropbox(guildId: string): Promise<void> {
+    // Assicurati che Dropbox sia sempre configurato
     if (!DropboxService.isConfigured()) {
-      console.log('Dropbox non configurato, skip sincronizzazione');
-      return;
+      console.log('Dropbox non configurato, inizializzo automaticamente...');
+      if (!DropboxService.initializeWithDefaultToken()) {
+        console.error('Impossibile configurare Dropbox per sincronizzazione');
+        return;
+      }
     }
 
     try {
@@ -183,9 +185,13 @@ export class PhotoService {
 
   // Carica i dati sincronizzati da Dropbox
   static async loadSyncedData(guildId: string): Promise<void> {
+    // Assicurati che Dropbox sia sempre configurato
     if (!DropboxService.isConfigured()) {
-      console.log('Dropbox non configurato, uso solo dati locali');
-      return;
+      console.log('Dropbox non configurato, inizializzo automaticamente...');
+      if (!DropboxService.initializeWithDefaultToken()) {
+        console.error('Impossibile configurare Dropbox per caricamento dati');
+        return;
+      }
     }
 
     try {
@@ -285,15 +291,18 @@ export class PhotoService {
   // Elimina una foto
   static async deletePhoto(guildId: string, challengeId: number): Promise<void> {
     try {
-      // Prima prova a eliminare da Dropbox se configurato
-      if (DropboxService.isConfigured()) {
-        const photo = await this.getChallengePhoto(guildId, challengeId);
-        if (photo && photo.photo_url.includes('dropbox')) {
-          try {
-            await DropboxService.deletePhoto(photo.photo_url);
-          } catch (error) {
-            console.warn('Errore eliminazione Dropbox:', error);
-          }
+      // Assicurati che Dropbox sia configurato
+      if (!DropboxService.isConfigured()) {
+        DropboxService.initializeWithDefaultToken();
+      }
+
+      // Elimina da Dropbox
+      const photo = await this.getChallengePhoto(guildId, challengeId);
+      if (photo && photo.photo_url.includes('dropbox')) {
+        try {
+          await DropboxService.deletePhoto(photo.photo_url);
+        } catch (error) {
+          console.warn('Errore eliminazione Dropbox:', error);
         }
       }
 
