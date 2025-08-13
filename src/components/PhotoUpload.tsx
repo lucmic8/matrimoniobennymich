@@ -38,7 +38,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, isCamera: boolean = false) => {
     const file = event.target.files?.[0];
     if (file) {
-      console.log('=== 📱 FILE SELEZIONATO DA MOBILE ===');
+      console.log('=== 📱 FILE SELEZIONATO (ULTRA DEBUG) ===');
       console.log('📋 Dettagli completi:', { 
         name: file.name, 
         size: file.size, 
@@ -46,71 +46,61 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
         isCamera,
         lastModified: new Date(file.lastModified).toISOString(),
         webkitRelativePath: (file as any).webkitRelativePath || 'N/A',
-        constructor: file.constructor.name
+        constructor: file.constructor.name,
+        sizeKB: (file.size / 1024).toFixed(2) + ' KB',
+        sizeMB: (file.size / 1024 / 1024).toFixed(2) + ' MB'
       });
       
-      // Validazione ultra-permissiva per mobile
-      let isValidImage = false;
-      let validationReason = '';
-      
-      // 1. Se viene dalla fotocamera, accetta sempre se ha contenuto
-      if (isCamera && file.size > 50) {
-        isValidImage = true;
-        validationReason = 'Foto da fotocamera';
-      }
-      // 2. Se ha tipo image/*, accetta
-      else if (file.type.startsWith('image/')) {
-        isValidImage = true;
-        validationReason = 'Tipo MIME immagine';
-      }
-      // 3. Se ha dimensione ragionevole (>1KB), probabilmente è un'immagine
-      else if (file.size > 1000) {
-        isValidImage = true;
-        validationReason = 'Dimensione ragionevole';
-      }
-      // 4. Tipi generici da mobile
-      else if (file.type === 'application/octet-stream' || file.type === '') {
-        isValidImage = true;
-        validationReason = 'Tipo generico mobile';
-      }
-      
-      console.log('🔍 Validazione:', { isValidImage, validationReason });
-      
-      if (!isValidImage) {
-        console.error('❌ File non valido:', { type: file.type, size: file.size });
-        setError(`File non valido. Dettagli: Tipo="${file.type || 'vuoto'}", Dimensione=${file.size} bytes. Prova con un'altra foto.`);
-        return;
-      }
+      // VALIDAZIONE ULTRA-PERMISSIVA: Accetta tutto tranne file vuoti
+      console.log('🔍 VALIDAZIONE ULTRA-PERMISSIVA INIZIATA...');
 
-      // Verifica dimensione (max 50MB per compatibilità mobile)
-      if (file.size > 50 * 1024 * 1024) {
-        console.error('❌ File troppo grande:', file.size);
-        setError('Il file è troppo grande. Dimensione massima: 50MB');
-        return;
-      }
-
-      // Verifica che il file non sia vuoto
+      // 1. Verifica che non sia vuoto
       if (file.size === 0) {
-        console.error('❌ File vuoto');
-        setError('Il file selezionato è vuoto o corrotto');
+        console.error('❌ ERRORE: File completamente vuoto');
+        setError('Il file selezionato è vuoto. Prova a scattare/selezionare un\'altra foto.');
         return;
       }
+      console.log('✅ CHECK 1: File non vuoto');
 
-      // Verifica dimensione minima ragionevole per un'immagine
-      if (file.size < 50) {
-        console.error('❌ File troppo piccolo:', file.size);
-        setError('Il file è troppo piccolo per essere un\'immagine valida (min 50 bytes)');
+      // 2. Verifica dimensione massima (50MB)
+      if (file.size > 50 * 1024 * 1024) {
+        console.error('❌ ERRORE: File troppo grande:', (file.size / 1024 / 1024).toFixed(2) + ' MB');
+        setError(`Il file è troppo grande (${(file.size / 1024 / 1024).toFixed(2)} MB). Dimensione massima: 50MB`);
         return;
       }
+      console.log('✅ CHECK 2: Dimensione accettabile');
 
-      console.log('✅ File validato con successo per mobile');
-      setSelectedFile(file);
-      if (previewUrl && previewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(previewUrl);
+      // 3. Verifica dimensione minima (almeno 100 bytes)
+      if (file.size < 100) {
+        console.error('❌ ERRORE: File troppo piccolo:', file.size + ' bytes');
+        setError(`Il file è troppo piccolo (${file.size} bytes). Potrebbe essere corrotto.`);
+        return;
       }
-      const newUrl = URL.createObjectURL(file);
-      setPreviewUrl(newUrl);
-      setError(null);
+      console.log('✅ CHECK 3: Dimensione minima OK');
+
+      // 4. ACCETTA TUTTO IL RESTO
+      console.log('✅ VALIDAZIONE COMPLETATA: File accettato per mobile');
+      console.log('📊 File finale:', {
+        accepted: true,
+        reason: 'Validazione ultra-permissiva per mobile',
+        size: file.size,
+        type: file.type || 'non specificato'
+      });
+
+      // 5. Crea preview
+      try {
+        setSelectedFile(file);
+        if (previewUrl && previewUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(previewUrl);
+        }
+        const newUrl = URL.createObjectURL(file);
+        setPreviewUrl(newUrl);
+        setError(null);
+        console.log('✅ Preview creata con successo');
+      } catch (previewError) {
+        console.error('❌ Errore creazione preview:', previewError);
+        setError('Impossibile creare anteprima, ma il file potrebbe essere comunque valido');
+      }
     }
     
     // Reset input value per permettere di selezionare lo stesso file

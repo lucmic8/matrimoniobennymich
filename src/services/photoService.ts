@@ -22,53 +22,37 @@ export class PhotoService {
   // Carica una foto con gestione migliorata per fotocamera
   static async uploadPhoto(file: File, guildId: string, challengeId: number): Promise<string> {
     try {
-      console.log('=== 📱 INIZIO CARICAMENTO FOTO MOBILE ===');
+      console.log('=== 📱 INIZIO CARICAMENTO FOTO (ULTRA DEBUG) ===');
       console.log('📋 File info completa:', { 
         name: file.name || 'FOTO_DA_TELEFONO', 
         size: file.size, 
         type: file.type || 'TIPO_NON_SPECIFICATO',
         lastModified: file.lastModified,
         sizeKB: (file.size / 1024).toFixed(2) + ' KB',
-        sizeMB: (file.size / 1024 / 1024).toFixed(2) + ' MB'
+        sizeMB: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+        constructor: file.constructor.name
       });
       
-      // Verifica che il file sia valido
+      // VALIDAZIONE ULTRA-SEMPLIFICATA
+      console.log('🔍 VALIDAZIONE ULTRA-SEMPLIFICATA...');
+      
       if (!file || file.size === 0) {
-        console.error('❌ File non valido:', { file, size: file?.size });
-        throw new Error('File non valido o vuoto');
+        console.error('❌ ERRORE CRITICO: File nullo o vuoto');
+        throw new Error('File nullo o completamente vuoto');
       }
+      console.log('✅ File esiste e ha contenuto');
 
-      // Verifica che sia un'immagine (più permissiva per foto da telefono)
-      const isValidImageType = 
-        file.type.startsWith('image/') || 
-        file.type === 'application/octet-stream' || 
-        file.type === '' ||
-        file.size > 1000; // Se ha dimensione ragionevole, probabilmente è un'immagine
-      
-      console.log('🔍 Controllo tipo immagine:', {
-        type: file.type,
-        startsWithImage: file.type.startsWith('image/'),
-        isOctetStream: file.type === 'application/octet-stream',
-        isEmpty: file.type === '',
-        hasReasonableSize: file.size > 1000,
-        finalResult: isValidImageType
-      });
-      
-      if (!isValidImageType) {
-        console.error('❌ Tipo file non valido:', file.type);
-        throw new Error(`Il file deve essere un'immagine. Tipo rilevato: "${file.type || 'vuoto'}", Dimensione: ${file.size} bytes`);
+      if (file.size < 100) {
+        console.error('❌ ERRORE: File troppo piccolo');
+        throw new Error(`File troppo piccolo: ${file.size} bytes`);
       }
+      console.log('✅ Dimensione accettabile');
 
-      // Verifica dimensione minima e massima
-      if (file.size < 50) {
-        console.error('❌ File troppo piccolo:', file.size);
-        throw new Error(`Il file è troppo piccolo per essere un'immagine valida (${file.size} bytes, minimo 50)`);
-      }
-      
       if (file.size > 50 * 1024 * 1024) {
-        console.error('❌ File troppo grande:', file.size);
-        throw new Error('Il file è troppo grande (max 50MB)');
+        console.error('❌ ERRORE: File troppo grande');
+        throw new Error(`File troppo grande: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
       }
+      console.log('✅ Tutte le validazioni superate');
       
       // Assicurati che Dropbox sia sempre configurato
       if (!DropboxService.isConfigured()) {

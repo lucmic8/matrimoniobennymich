@@ -215,14 +215,6 @@ export class DropboxService {
 
   // Verifica che il file sia un'immagine valida
   private static isValidImageFile(file: File): boolean {
-    const validTypes = [
-      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
-      'application/octet-stream', // File generici da mobile
-      '', // File senza tipo MIME
-      'image/heic', 'image/heif' // Formati iPhone
-    ];
-    const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', ''];
-    
     console.log('🔍 VALIDAZIONE FILE MOBILE:', { 
       name: file.name || 'NO_NAME', 
       type: file.type, 
@@ -231,53 +223,52 @@ export class DropboxService {
       constructor: file.constructor.name
     });
     
-    // Verifica che il file abbia contenuto (priorità assoluta)
+    // VALIDAZIONE ULTRA-PERMISSIVA PER MOBILE
+    
+    // 1. Verifica che il file abbia contenuto (priorità assoluta)
     if (file.size === 0) {
       console.error('❌ File vuoto');
       return false;
     }
     
-    // Verifica dimensione minima ragionevole per un'immagine
+    // 2. Verifica dimensione minima ragionevole per un'immagine
     if (file.size < 50) {
       console.error('❌ File troppo piccolo per essere un\'immagine:', file.size);
       return false;
     }
     
-    // Per file da mobile, se ha dimensione ragionevole, accetta sempre
-    if (file.size > 1000) {
-      console.log('✅ File con dimensione ragionevole - accettato per mobile');
+    // 3. REGOLA MOBILE: Se ha dimensione > 1KB, è probabilmente un'immagine valida
+    if (file.size >= 1000) {
+      console.log('✅ MOBILE: File con dimensione ragionevole (>1KB) - ACCETTATO AUTOMATICAMENTE');
       return true;
     }
     
-    // Controllo tipo MIME solo se specificato
-    if (file.type && !validTypes.includes(file.type)) {
-      console.warn('⚠️ Tipo MIME non riconosciuto:', file.type);
-      // Se ha dimensione ragionevole, accetta comunque
-      if (file.size > 1000) {
-        console.log('✅ Accettato comunque per dimensione');
-        return true;
-      }
-      console.error('❌ Tipo MIME non valido e dimensione troppo piccola');
-      return false;
+    // 4. Per file più piccoli, controlli aggiuntivi
+    const validTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'application/octet-stream', // File generici da mobile
+      '', // File senza tipo MIME
+      'image/heic', 'image/heif' // Formati iPhone
+    ];
+    
+    // 5. Se ha tipo MIME valido o è vuoto, accetta
+    if (!file.type || validTypes.includes(file.type)) {
+      console.log('✅ MOBILE: Tipo MIME valido o vuoto - ACCETTATO');
+      return true;
     }
     
-    // Controlla l'estensione se presente (opzionale per foto da telefono)
+    // 6. Controlla l'estensione se presente
+    const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'];
     if (file.name && file.name.includes('.')) {
       const ext = file.name.split('.').pop()?.toLowerCase();
-      if (ext && !validExtensions.includes(ext)) {
-        console.warn('⚠️ Estensione non riconosciuta:', ext);
-        // Se ha dimensione ragionevole, accetta comunque
-        if (file.size > 1000) {
-          console.log('✅ Accettato comunque per dimensione');
-          return true;
-        }
-        console.error('❌ Estensione non valida e dimensione troppo piccola');
+      if (ext && validExtensions.includes(ext)) {
+        console.log('✅ MOBILE: Estensione valida - ACCETTATO');
+        return true;
       }
-    } else {
-      console.log('📱 File senza nome/estensione - foto da telefono');
     }
     
-    console.log('✅ File validato con successo per mobile');
+    // 7. FALLBACK FINALE: Se è arrivato qui e ha dimensione > 50 bytes, accetta comunque
+    console.log('✅ MOBILE: FALLBACK - File con contenuto valido - ACCETTATO');
     return true;
   }
 
