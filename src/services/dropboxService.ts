@@ -76,6 +76,11 @@ export class DropboxService {
     }
   }
 
+  // Verifica se Dropbox è configurato
+  static isConfigured(): boolean {
+    return this.dbx !== null && this.accessToken !== null && this.accessToken.length > 0;
+  }
+
   // Verifica la connessione Dropbox
   private static async verifyConnection(): Promise<boolean> {
     try {

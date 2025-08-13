@@ -57,11 +57,8 @@ export class PhotoService {
       // Assicurati che Dropbox sia sempre configurato
       if (!DropboxService.isConfigured()) {
         console.log('🔧 Dropbox non configurato, inizializzo automaticamente...');
-        if (!DropboxService.initializeWithDefaultToken()) {
-          console.error('❌ Impossibile inizializzare Dropbox automaticamente');
-          throw new Error('Impossibile configurare Dropbox automaticamente');
-        }
-        console.log('✅ Dropbox inizializzato con successo');
+        DropboxService.initializeWithDefaultToken();
+        console.log('✅ Tentativo inizializzazione Dropbox completato');
       }
 
       // Carica sempre su Dropbox
@@ -157,10 +154,7 @@ export class PhotoService {
     // Assicurati che Dropbox sia sempre configurato
     if (!DropboxService.isConfigured()) {
       console.log('Dropbox non configurato, inizializzo automaticamente...');
-      if (!DropboxService.initializeWithDefaultToken()) {
-        console.error('Impossibile configurare Dropbox per sincronizzazione');
-        return;
-      }
+      DropboxService.initializeWithDefaultToken();
     }
 
     try {
@@ -221,10 +215,7 @@ export class PhotoService {
     // Assicurati che Dropbox sia sempre configurato
     if (!DropboxService.isConfigured()) {
       console.log('Dropbox non configurato, inizializzo automaticamente...');
-      if (!DropboxService.initializeWithDefaultToken()) {
-        console.error('Impossibile configurare Dropbox per caricamento dati');
-        return;
-      }
+      DropboxService.initializeWithDefaultToken();
     }
 
     try {
