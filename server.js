@@ -1,8 +1,12 @@
-const express = require('express');
-const fileUpload = require('express-fileupload');
-const fetch = require('node-fetch');
-const cors = require('cors');
-const path = require('path');
+import express from 'express';
+import fileUpload from 'express-fileupload';
+import fetch from 'node-fetch';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
