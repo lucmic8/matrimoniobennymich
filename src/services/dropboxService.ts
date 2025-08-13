@@ -177,12 +177,36 @@ export class DropboxService {
 
       // Carica il file su Dropbox
       MobileDebugger.log('📤 Caricamento su Dropbox...', { path: filePath });
-      const response = await this.dbx.filesUpload({
-        path: filePath,
-        contents: arrayBuffer,
-        mode: 'overwrite',
-        autorename: true
-      });
+      
+      // UPLOAD CON DEBUG COMPLETO
+      let response;
+      try {
+        response = await this.dbx.filesUpload({
+          path: filePath,
+          contents: arrayBuffer,
+          mode: 'add',
+          autorename: true,
+          strict_conflict: false
+        });
+        MobileDebugger.log('✅ Upload completato', {
+          name: response.result.name,
+          size: response.result.size,
+          path: response.result.path_lower
+        });
+      } catch (uploadError: any) {
+        MobileDebugger.log('❌ ERRORE UPLOAD DETTAGLIATO', {
+          message: uploadError.message,
+          status: uploadError.status || 'N/A',
+          error: uploadError.error || 'N/A',
+          response: uploadError.response || 'N/A',
+          stack: uploadError.stack?.substring(0, 200) || 'N/A'
+        });
+        
+        // Prova upload diretto con fetch per debug
+        MobileDebugger.log('🔄 Tentativo upload diretto con fetch...');
+        await this.debugDirectUpload(arrayBuffer, filePath);
+        throw uploadError;
+      }
       
       MobileDebugger.log('✅ Upload completato', {
         name: response.result.name,
@@ -246,6 +270,61 @@ export class DropboxService {
       }
       
       throw new Error('❌ ERRORE CARICAMENTO DROPBOX\n\n' + (error instanceof Error ? error.message : 'Errore sconosciuto'));
+    }
+  }
+
+  // Upload diretto con fetch per debug dettagliato
+  private static async debugDirectUpload(arrayBuffer: ArrayBuffer, filePath: string): Promise<void> {
+    try {
+      MobileDebugger.log('🌐 DEBUG: Upload diretto con fetch');
+      
+      const response = await fetch('https://content.dropboxapi.com/2/files/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/octet-stream',
+          'Dropbox-API-Arg': JSON.stringify({
+            path: filePath,
+            mode: 'add',
+            autorename: true,
+            mute: false
+          })
+        },
+        body: arrayBuffer
+      });
+
+      MobileDebugger.log('📊 RISPOSTA FETCH COMPLETA', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+
+      // Leggi la risposta come testo per vedere tutto
+      const responseText = await response.text();
+      MobileDebugger.log('📄 CORPO RISPOSTA COMPLETO', {
+        length: responseText.length,
+        text: responseText.substring(0, 500) + (responseText.length > 500 ? '...' : '')
+      });
+
+      if (!response.ok) {
+        MobileDebugger.log('❌ ERRORE HTTP', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText
+        });
+      } else {
+        MobileDebugger.log('✅ FETCH UPLOAD RIUSCITO', {
+          status: response.status,
+          bodyPreview: responseText.substring(0, 200)
+        });
+      }
+    } catch (fetchError: any) {
+      MobileDebugger.log('❌ ERRORE FETCH DIRETTO', {
+        message: fetchError.message,
+        name: fetchError.name,
+        stack: fetchError.stack?.substring(0, 200)
+      });
     }
   }
 
