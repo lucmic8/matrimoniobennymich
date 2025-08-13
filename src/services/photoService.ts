@@ -1,11 +1,17 @@
-import { supabase } from '../lib/supabase'
+import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import type { ChallengePhoto, GuildProgress } from '../lib/supabase'
 
 export class PhotoService {
   // Carica una foto nel storage di Supabase
   static async uploadPhoto(file: File, guildId: string, challengeId: number): Promise<string> {
-    if (!supabase) {
-      throw new Error('Per caricare le foto è necessario configurare Supabase. Clicca su "Connect to Supabase" in alto a destra nella pagina.');
+    // Verifica se Supabase è configurato
+    const isConfigured = await isSupabaseConfigured()
+    if (!isConfigured) {
+      // Fallback al localStorage per ora
+      const base64 = await this.fileToBase64(file)
+      const photoKey = `photo_${guildId}_${challengeId}`
+      localStorage.setItem(photoKey, base64)
+      return base64
     }
 
     try {
@@ -55,10 +61,24 @@ export class PhotoService {
     }
   }
 
+  // Converte un file in base64 per il fallback localStorage
+  private static fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = error => reject(error)
+    })
+  }
+
   // Salva i metadati della foto nel database
   static async savePhotoMetadata(guildId: string, challengeId: number, photoUrl: string): Promise<void> {
-    if (!supabase) {
-      throw new Error('Supabase non configurato. Clicca su "Connect to Supabase" per abilitare la sincronizzazione.');
+    const isConfigured = await isSupabaseConfigured()
+    if (!isConfigured) {
+      // Salva nel localStorage come fallback
+      const photoKey = `photo_${guildId}_${challengeId}`
+      localStorage.setItem(photoKey, photoUrl)
+      return
     }
 
     try {
@@ -84,9 +104,10 @@ export class PhotoService {
 
   // Ottieni tutte le foto di una gilda
   static async getGuildPhotos(guildId: string): Promise<ChallengePhoto[]> {
-    if (!supabase) {
-      console.warn('Supabase non configurato, ritorno array vuoto');
-      return [];
+    const isConfigured = await isSupabaseConfigured()
+    if (!isConfigured) {
+      // Fallback al localStorage
+      return this.getPhotosFromLocalStorage(guildId)
     }
 
     try {
@@ -232,5 +253,26 @@ export class PhotoService {
       console.error('Errore nel recupero del progresso:', error)
       return []
     }
+  }
+
+  // Ottieni il progresso dal localStorage (fallback)
+  private static getProgressFromLocalStorage(guildId: string): GuildProgress[] {
+    const progress: GuildProgress[] = []
+    for (let i = 1; i <= 15; i++) { // Assumendo 15 sfide
+      const progressKey = `progress_${guildId}_${i}`
+      const savedProgress = localStorage.getItem(progressKey)
+      if (savedProgress) {
+        const parsed = JSON.parse(savedProgress)
+        progress.push({
+          id: `${guildId}_${i}`,
+          guild_id: guildId,
+          challenge_id: i,
+          completed: parsed.completed,
+          created_at: parsed.updated_at,
+          updated_at: parsed.updated_at
+        })
+      }
+    }
+    return progress
   }
 }

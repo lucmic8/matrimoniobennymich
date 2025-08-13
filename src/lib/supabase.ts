@@ -1,15 +1,22 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+// Configurazione automatica Supabase
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key-here'
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Missing Supabase environment variables. Using fallback mode.')
+// Crea sempre il client Supabase
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Funzione per verificare se Supabase è configurato correttamente
+export const isSupabaseConfigured = async (): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.from('challenge_photos').select('count').limit(1)
+    return !error
+  } catch (error) {
+    console.warn('Supabase non configurato correttamente:', error)
+    return false
+  }
 }
-
-export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null
 
 // Tipi per il database
 export interface ChallengePhoto {

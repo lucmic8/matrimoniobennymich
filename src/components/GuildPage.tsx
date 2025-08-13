@@ -294,9 +294,9 @@ function GuildPage() {
               </div>
               <p className="text-lg text-amber-800 max-w-3xl mx-auto">
                 Completate tutte le missioni per conquistare la vetta della gloria. 
-                {!supabase && (
+                {!supabaseConnected && (
                   <span className="block mt-2 text-amber-700 font-semibold">
-                    ⚠️ Per condividere le foto tra dispositivi, clicca su "Connect to Supabase" in alto a destra.
+                    ⚠️ Modalità offline: le foto vengono salvate solo su questo dispositivo.
                   </span>
                 )}
               </p>
