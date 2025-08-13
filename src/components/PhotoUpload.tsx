@@ -253,6 +253,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                     >
                       Cambia foto
                     </button>
+                  </div>
                   <div className="flex gap-2 mt-2">
                     <button 
                       onClick={() => {
@@ -274,7 +275,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                     </button>
                   </div>
                 </div>
-              )}
+              ) : null}
 
               <input
                 ref={fileInputRef}
