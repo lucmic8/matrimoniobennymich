@@ -14,7 +14,7 @@ const app = express();
 app.use(cors());
 app.use(fileUpload({
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max
-  abortOnLimit: true
+  abortOnLimit: false
 }));
 app.use(express.json());
 
