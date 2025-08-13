@@ -38,49 +38,72 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, isCamera: boolean = false) => {
     const file = event.target.files?.[0];
     if (file) {
-      console.log('=== FILE SELEZIONATO ===');
-      console.log('Dettagli file:', { 
+      console.log('=== 📱 FILE SELEZIONATO DA MOBILE ===');
+      console.log('📋 Dettagli completi:', { 
         name: file.name, 
         size: file.size, 
         type: file.type,
         isCamera,
-        lastModified: new Date(file.lastModified).toISOString()
+        lastModified: new Date(file.lastModified).toISOString(),
+        webkitRelativePath: (file as any).webkitRelativePath || 'N/A',
+        constructor: file.constructor.name
       });
       
-      // Verifica che sia un'immagine (più permissiva per foto da telefono)
-      const isValidImage = file.type.startsWith('image/') || 
-                          file.type === 'application/octet-stream' || 
-                          file.type === '' || 
-                          isCamera;
+      // Validazione ultra-permissiva per mobile
+      let isValidImage = false;
+      let validationReason = '';
+      
+      // 1. Se viene dalla fotocamera, accetta sempre se ha contenuto
+      if (isCamera && file.size > 50) {
+        isValidImage = true;
+        validationReason = 'Foto da fotocamera';
+      }
+      // 2. Se ha tipo image/*, accetta
+      else if (file.type.startsWith('image/')) {
+        isValidImage = true;
+        validationReason = 'Tipo MIME immagine';
+      }
+      // 3. Se ha dimensione ragionevole (>1KB), probabilmente è un'immagine
+      else if (file.size > 1000) {
+        isValidImage = true;
+        validationReason = 'Dimensione ragionevole';
+      }
+      // 4. Tipi generici da mobile
+      else if (file.type === 'application/octet-stream' || file.type === '') {
+        isValidImage = true;
+        validationReason = 'Tipo generico mobile';
+      }
+      
+      console.log('🔍 Validazione:', { isValidImage, validationReason });
       
       if (!isValidImage) {
-        console.error('Tipo file non supportato:', file.type);
-        setError('Per favore seleziona un file immagine valido. Tipo rilevato: ' + (file.type || 'sconosciuto'));
+        console.error('❌ File non valido:', { type: file.type, size: file.size });
+        setError(`File non valido. Dettagli: Tipo="${file.type || 'vuoto'}", Dimensione=${file.size} bytes. Prova con un'altra foto.`);
         return;
       }
 
       // Verifica dimensione (max 50MB per compatibilità mobile)
       if (file.size > 50 * 1024 * 1024) {
-        console.error('File troppo grande:', file.size);
+        console.error('❌ File troppo grande:', file.size);
         setError('Il file è troppo grande. Dimensione massima: 50MB');
         return;
       }
 
       // Verifica che il file non sia vuoto
       if (file.size === 0) {
-        console.error('File vuoto');
+        console.error('❌ File vuoto');
         setError('Il file selezionato è vuoto o corrotto');
         return;
       }
 
       // Verifica dimensione minima ragionevole per un'immagine
-      if (file.size < 100) {
-        console.error('File troppo piccolo per essere un\'immagine:', file.size);
-        setError('Il file sembra troppo piccolo per essere un\'immagine valida');
+      if (file.size < 50) {
+        console.error('❌ File troppo piccolo:', file.size);
+        setError('Il file è troppo piccolo per essere un\'immagine valida (min 50 bytes)');
         return;
       }
 
-      console.log('✅ File validato con successo');
+      console.log('✅ File validato con successo per mobile');
       setSelectedFile(file);
       if (previewUrl && previewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(previewUrl);
@@ -327,6 +350,16 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
           {/* Debug info in development */}
           {process.env.NODE_ENV === 'development' && selectedFile && (
             <div className="mt-4 p-3 bg-gray-100 rounded-lg text-xs">
+              <p><strong>🔧 Mobile Debug Info:</strong></p>
+              <p>Nome: {selectedFile.name || 'N/A'}</p>
+              <p>Tipo: {selectedFile.type}</p>
+              <p>Dimensione: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+              <p>Ultima modifica: {new Date(selectedFile.lastModified).toLocaleString()}</p>
+            </div>
+          )}
+          
+          {selectedFile && (
+            <div className="mt-4 p-3 bg-blue-100 rounded-lg text-xs">
               <p><strong>Debug Info:</strong></p>
               <p>Nome: {selectedFile.name || 'N/A'}</p>
               <p>Tipo: {selectedFile.type}</p>
