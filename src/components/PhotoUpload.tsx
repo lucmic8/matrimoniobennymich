@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Upload, Camera, Check, X, Image, Loader } from 'lucide-react';
 import { PhotoService } from '../services/photoService';
-import { supabase } from '../lib/supabase';
 
 interface PhotoUploadProps {
   challengeId: number;

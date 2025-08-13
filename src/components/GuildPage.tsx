@@ -17,7 +17,6 @@ import { guilds } from '../data/guilds';
 import { challenges } from '../data/challenges';
 import PhotoUpload from './PhotoUpload';
 import { PhotoService } from '../services/photoService';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { DropboxService } from '../services/dropboxService';
 import DropboxConfig from './DropboxConfig';
 
