@@ -118,12 +118,18 @@ export class DropboxService {
   // Carica una foto su Dropbox
   static async uploadPhoto(file: File, guildId: string, challengeId: number): Promise<string> {
     MobileDebugger.clear();
-    MobileDebugger.log('🚀 INIZIO UPLOAD DROPBOX');
-    MobileDebugger.log('🌐 Test CORS e connettività...');
+    MobileDebugger.log('🚀 INIZIO UPLOAD DROPBOX (ULTRA DEBUG)');
+    MobileDebugger.log('🔧 Versione debug: 2.7 - Ultra Error Catching');
     
-    // Test CORS prima dell'upload
-    const corsTest = await this.testCORS();
-    MobileDebugger.log('🔍 Risultato test CORS', corsTest);
+    try {
+      MobileDebugger.log('🌐 Test CORS e connettività...');
+      
+      // Test CORS prima dell'upload
+      const corsTest = await this.testCORS();
+      MobileDebugger.log('🔍 Risultato test CORS', corsTest);
+    } catch (corsError) {
+      MobileDebugger.log('❌ ERRORE durante test CORS', corsError);
+    }
     
     MobileDebugger.log('📁 File info', {
       name: file.name || 'NO_NAME',
@@ -184,10 +190,19 @@ export class DropboxService {
       // Carica il file su Dropbox
       MobileDebugger.log('📤 Caricamento su Dropbox...', { path: filePath });
       
-      // UPLOAD CON DEBUG COMPLETO
+      // UPLOAD CON ULTRA DEBUG E TRY-CATCH MULTIPLI
       let response;
       try {
         MobileDebugger.log('📤 Tentativo upload con libreria Dropbox...');
+        
+        // Verifica che dbx sia ancora valido
+        if (!this.dbx) {
+          MobileDebugger.log('❌ ERRORE CRITICO: dbx è null dopo inizializzazione');
+          throw new Error('Dropbox client non inizializzato');
+        }
+        
+        MobileDebugger.log('✅ Dropbox client verificato, procedo con upload...');
+        
         response = await this.dbx.filesUpload({
           path: filePath,
           contents: arrayBuffer,
@@ -195,31 +210,52 @@ export class DropboxService {
           autorename: true,
           strict_conflict: false
         });
+        
         MobileDebugger.log('✅ Upload completato', {
           name: response.result.name,
           size: response.result.size,
           path: response.result.path_lower
         });
       } catch (uploadError: any) {
-        MobileDebugger.log('❌ ERRORE UPLOAD DETTAGLIATO', {
+        MobileDebugger.log('❌ ERRORE UPLOAD ULTRA-DETTAGLIATO', {
           message: uploadError.message,
+          name: uploadError.name,
           status: uploadError.status || 'N/A',
           error: uploadError.error || 'N/A',
           response: uploadError.response || 'N/A',
-          stack: uploadError.stack?.substring(0, 200) || 'N/A'
+          stack: uploadError.stack?.substring(0, 300) || 'N/A',
+          toString: uploadError.toString(),
+          constructor: uploadError.constructor.name,
+          keys: Object.keys(uploadError)
         });
+        
+        // Log dell'errore completo come stringa
+        try {
+          MobileDebugger.log('📄 ERRORE SERIALIZZATO COMPLETO', JSON.stringify(uploadError, null, 2));
+        } catch (serError) {
+          MobileDebugger.log('⚠️ Impossibile serializzare errore:', serError.message);
+        }
         
         // Analizza se è un problema CORS
         if (this.isCORSError(uploadError)) {
           MobileDebugger.log('🚫 RILEVATO ERRORE CORS - Tentativo fallback...');
-          return await this.uploadWithFallback(file, arrayBuffer, filePath);
+          try {
+            return await this.uploadWithFallback(file, arrayBuffer, filePath);
+          } catch (fallbackError) {
+            MobileDebugger.log('❌ ERRORE ANCHE NEL FALLBACK', fallbackError);
+            throw fallbackError;
+          }
         }
         
         // Se non è CORS, prova upload diretto per debug
         MobileDebugger.log('🔄 Tentativo upload diretto con fetch...');
-        const directResult = await this.debugDirectUpload(arrayBuffer, filePath);
-        if (directResult) {
-          return directResult;
+        try {
+          const directResult = await this.debugDirectUpload(arrayBuffer, filePath);
+          if (directResult) {
+            return directResult;
+          }
+        } catch (directError) {
+          MobileDebugger.log('❌ ERRORE ANCHE NELL\'UPLOAD DIRETTO', directError);
         }
         
         throw uploadError;
@@ -235,6 +271,12 @@ export class DropboxService {
       let sharedLink;
       try {
         MobileDebugger.log('🔗 Creazione link condiviso...');
+        
+        if (!response || !response.result || !response.result.path_lower) {
+          MobileDebugger.log('❌ ERRORE: Risposta upload non valida', response);
+          throw new Error('Risposta upload non valida');
+        }
+        
         sharedLink = await this.dbx.sharingCreateSharedLinkWithSettings({
           path: response.result.path_lower!,
           settings: {
@@ -245,10 +287,16 @@ export class DropboxService {
           url: sharedLink.result.url.substring(0, 50) + '...'
         });
       } catch (linkError) {
-        MobileDebugger.log('⚠️ Errore link condiviso, provo metodo alternativo', linkError);
+        MobileDebugger.log('⚠️ Errore link condiviso DETTAGLIATO', {
+          message: linkError.message,
+          name: linkError.name,
+          stack: linkError.stack?.substring(0, 200),
+          toString: linkError.toString()
+        });
         
         // Fallback: prova con metodo semplice
         try {
+          MobileDebugger.log('🔄 Tentativo link semplice...');
           const simpleLinkResponse = await this.dbx.sharingCreateSharedLink({
             path: response.result.path_lower!
           });
@@ -257,7 +305,11 @@ export class DropboxService {
             url: sharedLink.result.url.substring(0, 50) + '...'
           });
         } catch (simpleLinkError) {
-          MobileDebugger.log('❌ ERRORE: Anche link semplice fallito', simpleLinkError);
+          MobileDebugger.log('❌ ERRORE: Anche link semplice fallito DETTAGLIATO', {
+            message: simpleLinkError.message,
+            name: simpleLinkError.name,
+            stack: simpleLinkError.stack?.substring(0, 200)
+          });
           throw new Error('Impossibile creare link condiviso per la foto');
         }
       }
@@ -270,7 +322,22 @@ export class DropboxService {
       
       return directLink;
     } catch (error) {
-      MobileDebugger.log('❌ ERRORE FINALE nel caricamento', error);
+      MobileDebugger.log('❌ ERRORE FINALE ULTRA-DETTAGLIATO', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        toString: error.toString(),
+        constructor: error.constructor.name,
+        isError: error instanceof Error,
+        keys: Object.keys(error)
+      });
+      
+      // Prova a serializzare l'errore completo
+      try {
+        MobileDebugger.log('📄 ERRORE FINALE SERIALIZZATO', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+      } catch (serError) {
+        MobileDebugger.log('⚠️ Impossibile serializzare errore finale');
+      }
       
       // Errori specifici più utili
       if (error instanceof Error) {
@@ -286,7 +353,11 @@ export class DropboxService {
         }
       }
       
-      throw new Error('❌ ERRORE CARICAMENTO DROPBOX\n\n' + (error instanceof Error ? error.message : 'Errore sconosciuto'));
+      // Messaggio finale con più dettagli
+      const errorMessage = error instanceof Error ? error.message : 'Errore sconosciuto';
+      const errorName = error instanceof Error ? error.name : 'UnknownError';
+      
+      throw new Error(`❌ ERRORE CARICAMENTO DROPBOX\n\nTipo: ${errorName}\nMessaggio: ${errorMessage}\n\nControlla il debug mobile per dettagli completi.`);
     }
   }
 
@@ -455,43 +526,62 @@ export class DropboxService {
     try {
       // Fallback 1: Prova con FormData invece di ArrayBuffer
       MobileDebugger.log('📋 Fallback 1: Upload con FormData...');
-      const formData = new FormData();
-      formData.append('file', file);
       
-      const formResponse = await fetch('https://content.dropboxapi.com/2/files/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
-          'Dropbox-API-Arg': JSON.stringify({
-            path: filePath,
-            mode: 'add',
-            autorename: true
-          })
-        },
-        body: formData
-      });
-      
-      if (formResponse.ok) {
-        const result = await formResponse.text();
-        MobileDebugger.log('✅ Fallback FormData riuscito');
-        const uploadResult = JSON.parse(result);
-        return await this.createSharedLink(uploadResult.path_lower);
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const formResponse = await fetch('https://content.dropboxapi.com/2/files/upload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Dropbox-API-Arg': JSON.stringify({
+              path: filePath,
+              mode: 'add',
+              autorename: true
+            })
+          },
+          body: formData
+        });
+        
+        MobileDebugger.log('📊 Risposta FormData', {
+          status: formResponse.status,
+          statusText: formResponse.statusText,
+          ok: formResponse.ok
+        });
+        
+        if (formResponse.ok) {
+          const result = await formResponse.text();
+          MobileDebugger.log('✅ Fallback FormData riuscito');
+          const uploadResult = JSON.parse(result);
+          return await this.createSharedLink(uploadResult.path_lower);
+        }
+      } catch (formError) {
+        MobileDebugger.log('❌ Errore FormData fallback', formError);
       }
       
       // Fallback 2: Upload tramite base64
       MobileDebugger.log('📋 Fallback 2: Upload con base64...');
-      const base64Data = await this.fileToBase64(file);
-      const base64Response = await this.uploadBase64(base64Data, filePath);
-      
-      if (base64Response) {
-        MobileDebugger.log('✅ Fallback base64 riuscito');
-        return base64Response;
+      try {
+        const base64Data = await this.fileToBase64(file);
+        const base64Response = await this.uploadBase64(base64Data, filePath);
+        
+        if (base64Response) {
+          MobileDebugger.log('✅ Fallback base64 riuscito');
+          return base64Response;
+        }
+      } catch (base64Error) {
+        MobileDebugger.log('❌ Errore base64 fallback', base64Error);
       }
       
       throw new Error('Tutti i fallback CORS sono falliti');
       
     } catch (fallbackError) {
-      MobileDebugger.log('❌ Errore sistema fallback', fallbackError);
+      MobileDebugger.log('❌ Errore sistema fallback DETTAGLIATO', {
+        message: fallbackError.message,
+        name: fallbackError.name,
+        stack: fallbackError.stack?.substring(0, 200)
+      });
       throw new Error('❌ PROBLEMA CORS MOBILE\n\nIl tuo browser mobile sta bloccando le richieste a Dropbox.\nProva:\n1. Usa Chrome invece di Safari\n2. Disabilita modalità risparmio dati\n3. Connettiti a WiFi invece di dati mobili');
     }
   }
