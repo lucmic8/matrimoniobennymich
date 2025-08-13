@@ -38,31 +38,37 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, isCamera: boolean = false) => {
     const file = event.target.files?.[0];
     if (file) {
-      console.log('File selezionato:', { 
+      console.log('=== FILE SELEZIONATO ===');
+      console.log('Dettagli file:', { 
         name: file.name, 
         size: file.size, 
         type: file.type,
-        isCamera 
+        isCamera,
+        lastModified: new Date(file.lastModified).toISOString()
       });
       
       // Verifica che sia un'immagine
       if (!file.type.startsWith('image/')) {
+        console.error('Tipo file non supportato:', file.type);
         setError('Per favore seleziona un file immagine valido');
         return;
       }
 
       // Verifica dimensione (max 50MB per compatibilità mobile)
       if (file.size > 50 * 1024 * 1024) {
+        console.error('File troppo grande:', file.size);
         setError('Il file è troppo grande. Dimensione massima: 50MB');
         return;
       }
 
       // Verifica che il file non sia vuoto
       if (file.size === 0) {
+        console.error('File vuoto');
         setError('Il file selezionato è vuoto o corrotto');
         return;
       }
 
+      console.log('✅ File validato con successo');
       setSelectedFile(file);
       if (previewUrl && previewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(previewUrl);
@@ -79,7 +85,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
   const handleUpload = async () => {
     if (!selectedFile && !existingPhoto) return;
 
-    console.log('Inizio upload foto...');
+    console.log('=== INIZIO PROCESSO UPLOAD ===');
     setIsUploading(true);
     setError(null);
     
@@ -88,7 +94,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
 
       if (selectedFile) {
         // Carica la nuova foto
-        console.log('Caricamento nuova foto...');
+        console.log('Caricamento nuova foto in corso...');
         photoUrl = await PhotoService.uploadPhoto(selectedFile, guildId, challengeId);
       } else {
         // Usa la foto esistente
@@ -97,7 +103,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
       
       // Notifica il componente padre
       onPhotoUploaded(challengeId, photoUrl);
-      console.log('Upload completato con successo');
+      console.log('✅ Upload completato con successo');
       
       setUploadSuccess(true);
       
@@ -106,8 +112,13 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
         onClose();
       }, 2000);
     } catch (error) {
-      console.error('Errore nel caricamento:', error);
-      console.error('Stack trace:', error);
+      console.error('❌ ERRORE nel caricamento:', error);
+      if (error instanceof Error) {
+        console.error('Messaggio errore:', error.message);
+        console.error('Stack trace:', error.stack);
+      }
+      
+      // Mostra un errore più user-friendly
       setError(error instanceof Error ? error.message : 'Errore nel caricamento della foto');
     } finally {
       setIsUploading(false);
@@ -253,7 +264,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                 <button
                   onClick={triggerCameraInput}
                   disabled={isUploading}
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 px-4 rounded-lg transition-all font-medium flex items-center justify-center text-lg shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 px-4 rounded-lg transition-all font-medium flex items-center justify-center text-lg shadow-lg hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Camera className="h-6 w-6 mr-3" />
                   📸 Scatta Foto
@@ -263,7 +274,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                   <button
                     onClick={triggerFileInput}
                     disabled={isUploading}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 px-4 rounded-lg transition-all font-medium flex items-center justify-center disabled:cursor-not-allowed"
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 px-4 rounded-lg transition-all font-medium flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Upload className="h-4 w-4 mr-2" />
                     📁 Carica da Galleria
@@ -272,7 +283,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                   <button
                     onClick={onClose}
                     disabled={isUploading}
-                    className="flex-1 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-800 disabled:text-gray-500 py-3 px-4 rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
+                    className="flex-1 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-800 disabled:text-gray-500 py-3 px-4 rounded-lg transition-colors font-medium disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Annulla
                   </button>
@@ -282,7 +293,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                   <button
                     onClick={handleUpload}
                     disabled={isUploading}
-                    className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 px-4 rounded-lg transition-all font-medium flex items-center justify-center disabled:cursor-not-allowed"
+                    className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 px-4 rounded-lg transition-all font-medium flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {isUploading ? (
                       <>
@@ -299,6 +310,17 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                 )}
               </div>
             </>
+          )}
+
+          {/* Debug info in development */}
+          {process.env.NODE_ENV === 'development' && selectedFile && (
+            <div className="mt-4 p-3 bg-gray-100 rounded-lg text-xs">
+              <p><strong>Debug Info:</strong></p>
+              <p>Nome: {selectedFile.name || 'N/A'}</p>
+              <p>Tipo: {selectedFile.type}</p>
+              <p>Dimensione: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+              <p>Ultima modifica: {new Date(selectedFile.lastModified).toLocaleString()}</p>
+            </div>
           )}
 
         </div>
