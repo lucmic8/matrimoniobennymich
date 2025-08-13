@@ -1,12 +1,25 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import type { ChallengePhoto, GuildProgress } from '../lib/supabase'
+import { DropboxService } from './dropboxService'
 
 export class PhotoService {
   // Carica una foto nel storage di Supabase
   static async uploadPhoto(file: File, guildId: string, challengeId: number): Promise<string> {
+    // Prova prima con Dropbox, poi con Supabase, infine localStorage
+    if (DropboxService.isConfigured()) {
+      try {
+        const photoUrl = await DropboxService.uploadPhoto(file, guildId, challengeId);
+        // Salva i metadati localmente
+        await this.savePhotoMetadata(guildId, challengeId, photoUrl);
+        return photoUrl;
+      } catch (error) {
+        console.error('Errore Dropbox, provo con fallback:', error);
+      }
+    }
+
     // Verifica se Supabase è configurato
-    const isConfigured = await isSupabaseConfigured()
-    if (!isConfigured) {
+    const supabaseConfigured = await isSupabaseConfigured()
+    if (!supabaseConfigured) {
       // Fallback al localStorage per ora
       const base64 = await PhotoService.fileToBase64(file)
       const photoKey = `photo_${guildId}_${challengeId}`
@@ -104,8 +117,8 @@ export class PhotoService {
 
   // Ottieni tutte le foto di una gilda
   static async getGuildPhotos(guildId: string): Promise<ChallengePhoto[]> {
-    const isConfigured = await isSupabaseConfigured()
-    if (!isConfigured) {
+    const supabaseConfigured = await isSupabaseConfigured()
+    if (!supabaseConfigured) {
       // Fallback al localStorage
       return PhotoService.getPhotosFromLocalStorage(guildId)
     }
@@ -155,8 +168,23 @@ export class PhotoService {
 
   // Elimina una foto
   static async deletePhoto(guildId: string, challengeId: number): Promise<void> {
+    // Prima prova a eliminare da Dropbox se configurato
+    if (DropboxService.isConfigured()) {
+      const photo = await this.getChallengePhoto(guildId, challengeId);
+      if (photo && photo.photo_url.includes('dropbox')) {
+        try {
+          await DropboxService.deletePhoto(photo.photo_url);
+        } catch (error) {
+          console.warn('Errore eliminazione Dropbox:', error);
+        }
+      }
+    }
+
     if (!supabase) {
-      throw new Error('Supabase non configurato. Clicca su "Connect to Supabase" per abilitare la gestione delle foto.');
+      // Rimuovi dal localStorage
+      const photoKey = `photo_${guildId}_${challengeId}`;
+      localStorage.removeItem(photoKey);
+      return;
     }
 
     try {
@@ -205,8 +233,8 @@ export class PhotoService {
 
   // Gestione del progresso delle sfide
   static async updateChallengeProgress(guildId: string, challengeId: number, completed: boolean): Promise<void> {
-    const isConfigured = await isSupabaseConfigured()
-    if (!isConfigured) {
+    const supabaseConfigured = await isSupabaseConfigured()
+    if (!supabaseConfigured) {
       // Fallback al localStorage
       const progressKey = `progress_${guildId}_${challengeId}`
       localStorage.setItem(progressKey, JSON.stringify({
@@ -244,8 +272,8 @@ export class PhotoService {
 
   // Ottieni il progresso di una gilda
   static async getGuildProgress(guildId: string): Promise<GuildProgress[]> {
-    const isConfigured = await isSupabaseConfigured()
-    if (!isConfigured) {
+    const supabaseConfigured = await isSupabaseConfigured()
+    if (!supabaseConfigured) {
       return PhotoService.getProgressFromLocalStorage(guildId)
     }
 

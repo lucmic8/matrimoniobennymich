@@ -10,13 +10,16 @@ import {
   CheckCircle,
   Circle,
   Loader,
-  RefreshCw
+  RefreshCw,
+  Cloud
 } from 'lucide-react';
 import { guilds } from '../data/guilds';
 import { challenges } from '../data/challenges';
 import PhotoUpload from './PhotoUpload';
 import { PhotoService } from '../services/photoService';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { DropboxService } from '../services/dropboxService';
+import DropboxConfig from './DropboxConfig';
 
 function GuildPage() {
   const { guildId } = useParams<{ guildId: string }>();
@@ -26,7 +29,8 @@ function GuildPage() {
   const [uploadingChallenge, setUploadingChallenge] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [supabaseConfigured, setSupabaseConfigured] = useState(false);
+  const [showDropboxConfig, setShowDropboxConfig] = useState(false);
+  const [dropboxConfigured, setDropboxConfigured] = useState(false);
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -36,17 +40,22 @@ function GuildPage() {
   // Carica i dati da Supabase al mount del componente
   useEffect(() => {
     loadGuildData();
+    checkDropboxConfig();
   }, [guildId]);
+
+  const checkDropboxConfig = () => {
+    const savedToken = localStorage.getItem('dropbox_access_token');
+    if (savedToken) {
+      DropboxService.initialize(savedToken);
+      setDropboxConfigured(DropboxService.isConfigured());
+    }
+  };
 
   const loadGuildData = async () => {
     if (!guildId) return;
     
     setIsLoading(true);
     try {
-      // Verifica se Supabase è configurato
-      const configured = await isSupabaseConfigured();
-      setSupabaseConfigured(configured);
-      
       // Carica le foto delle sfide
       const photos = await PhotoService.getGuildPhotos(guildId);
       const photoMap = new Map<number, string>();
@@ -286,6 +295,29 @@ function GuildPage() {
               </div>
             </div>
           </div>
+            {/* Dropbox Configuration Button */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between">
+                <span className="text-amber-700 font-semibold">Storage delle Foto</span>
+                <button
+                  onClick={() => setShowDropboxConfig(true)}
+                  className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center text-sm font-medium shadow-md hover:shadow-lg ${
+                    dropboxConfigured
+                      ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white'
+                      : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white'
+                  }`}
+                >
+                  <Cloud className="h-4 w-4 mr-2" />
+                  {dropboxConfigured ? 'Dropbox Connesso' : 'Configura Dropbox'}
+                </button>
+              </div>
+              <p className="text-sm text-amber-600 mt-1">
+                {dropboxConfigured 
+                  ? 'Le foto vengono salvate nel tuo Dropbox e sono accessibili da tutti i dispositivi'
+                  : 'Configura Dropbox per salvare le foto nel cloud e condividerle tra dispositivi'
+                }
+              </p>
+            </div>
         </div>
 
         {/* Challenges Section */}
@@ -403,6 +435,17 @@ function GuildPage() {
           </div>
         </div>
       </div>
+
+      {/* Dropbox Configuration Modal */}
+      {showDropboxConfig && (
+        <DropboxConfig
+          onClose={() => setShowDropboxConfig(false)}
+          onConfigured={() => {
+            setDropboxConfigured(true);
+            setShowDropboxConfig(false);
+          }}
+        />
+      )}
 
       {/* Photo Upload Modal */}
       {uploadingChallenge && (
