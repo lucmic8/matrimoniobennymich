@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Upload, Camera, Check, X, Image } from 'lucide-react';
+import { Upload, Camera, Check, X, Image, Loader } from 'lucide-react';
+import { PhotoService } from '../services/photoService';
 
 interface PhotoUploadProps {
   challengeId: number;
@@ -17,6 +18,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
   const [previewUrl, setPreviewUrl] = useState<string | null>(existingPhoto || null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (existingPhoto) {
@@ -27,9 +29,22 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, isCamera: boolean = false) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Verifica che sia un'immagine
+      if (!file.type.startsWith('image/')) {
+        setError('Per favore seleziona un file immagine valido');
+        return;
+      }
+
+      // Verifica dimensione (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setError('Il file è troppo grande. Dimensione massima: 10MB');
+        return;
+      }
+
       setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
+      setError(null);
     }
   };
 
@@ -37,26 +52,34 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
     if (!selectedFile && !existingPhoto) return;
 
     setIsUploading(true);
+    setError(null);
     
-    // Simula il caricamento e salvataggio
-    setTimeout(() => {
-      const photoUrl = previewUrl || URL.createObjectURL(selectedFile!);
-      
-      // Salva nel localStorage per persistenza tra sessioni
-      const storageKey = `photo_${guildId}_${challengeId}`;
-      localStorage.setItem(storageKey, photoUrl);
+    try {
+      let photoUrl: string;
+
+      if (selectedFile) {
+        // Carica la nuova foto
+        photoUrl = await PhotoService.uploadPhoto(selectedFile, guildId, challengeId);
+      } else {
+        // Usa la foto esistente
+        photoUrl = existingPhoto!;
+      }
       
       // Notifica il componente padre
       onPhotoUploaded(challengeId, photoUrl);
       
-      setIsUploading(false);
       setUploadSuccess(true);
       
       // Chiudi il modal dopo 2 secondi
       setTimeout(() => {
         onClose();
       }, 2000);
-    }, 2000);
+    } catch (error) {
+      console.error('Errore nel caricamento:', error);
+      setError(error instanceof Error ? error.message : 'Errore nel caricamento della foto');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const triggerFileInput = () => {
@@ -67,13 +90,28 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
     cameraInputRef.current?.click();
   };
 
-  const removePhoto = () => {
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    
-    // Rimuovi dal localStorage
-    const storageKey = `photo_${guildId}_${challengeId}`;
-    localStorage.removeItem(storageKey);
+  const removePhoto = async () => {
+    try {
+      setIsUploading(true);
+      
+      // Elimina la foto dal server se esiste
+      if (existingPhoto) {
+        await PhotoService.deletePhoto(guildId, challengeId);
+      }
+      
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      setError(null);
+      
+      // Notifica il componente padre che la foto è stata rimossa
+      onPhotoUploaded(challengeId, '');
+      
+    } catch (error) {
+      console.error('Errore nell\'eliminazione:', error);
+      setError('Impossibile eliminare la foto');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -85,6 +123,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
             <button
               onClick={onClose}
               className="text-amber-600 hover:text-amber-800 transition-colors"
+              disabled={isUploading}
             >
               <X className="h-6 w-6" />
             </button>
@@ -95,13 +134,19 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
             <p className="text-amber-700 text-sm">{challengeTitle}</p>
           </div>
 
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm">{error}</p>
+            </div>
+          )}
+
           {uploadSuccess ? (
             <div className="text-center py-8">
               <div className="bg-green-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Check className="h-8 w-8 text-green-600" />
               </div>
               <h4 className="text-lg font-bold text-green-700 mb-2">Foto Salvata!</h4>
-              <p className="text-green-600">La tua prova è stata salvata con successo e sarà visibile a tutti i membri della cima.</p>
+              <p className="text-green-600">La tua prova è stata salvata con successo e sarà visibile a tutti i membri della cima su tutti i dispositivi.</p>
             </div>
           ) : (
             <>
@@ -122,13 +167,21 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                   <div className="flex gap-2 mt-3">
                     <button
                       onClick={removePhoto}
-                      className="flex-1 text-red-600 hover:text-red-800 text-sm transition-colors py-2 px-3 border border-red-200 rounded-lg hover:bg-red-50"
+                      disabled={isUploading}
+                      className="flex-1 text-red-600 hover:text-red-800 text-sm transition-colors py-2 px-3 border border-red-200 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Rimuovi foto
+                      {isUploading ? (
+                        <div className="flex items-center justify-center">
+                          <Loader className="h-4 w-4 animate-spin" />
+                        </div>
+                      ) : (
+                        'Rimuovi foto'
+                      )}
                     </button>
                     <button
                       onClick={triggerFileInput}
-                      className="flex-1 text-amber-600 hover:text-amber-800 text-sm transition-colors py-2 px-3 border border-amber-200 rounded-lg hover:bg-amber-50"
+                      disabled={isUploading}
+                      className="flex-1 text-amber-600 hover:text-amber-800 text-sm transition-colors py-2 px-3 border border-amber-200 rounded-lg hover:bg-amber-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cambia foto
                     </button>
@@ -150,6 +203,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                 accept="image/*"
                 onChange={(e) => handleFileSelect(e, false)}
                 className="hidden"
+                disabled={isUploading}
               />
 
               <input
@@ -159,13 +213,15 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                 capture="environment"
                 onChange={(e) => handleFileSelect(e, true)}
                 className="hidden"
+                disabled={isUploading}
               />
 
               <div className="space-y-3">
                 {/* Pulsante centrale per scattare foto */}
                 <button
                   onClick={triggerCameraInput}
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-4 px-4 rounded-lg transition-all font-medium flex items-center justify-center text-lg shadow-lg hover:shadow-xl"
+                  disabled={isUploading}
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 px-4 rounded-lg transition-all font-medium flex items-center justify-center text-lg shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
                 >
                   <Camera className="h-6 w-6 mr-3" />
                   Scatta una Foto
@@ -174,7 +230,8 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                 <div className="flex gap-3">
                   <button
                     onClick={triggerFileInput}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white py-3 px-4 rounded-lg transition-all font-medium flex items-center justify-center"
+                    disabled={isUploading}
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 px-4 rounded-lg transition-all font-medium flex items-center justify-center disabled:cursor-not-allowed"
                   >
                     <Upload className="h-4 w-4 mr-2" />
                     Carica Foto
@@ -182,7 +239,8 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                   
                   <button
                     onClick={onClose}
-                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 px-4 rounded-lg transition-colors font-medium"
+                    disabled={isUploading}
+                    className="flex-1 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-800 disabled:text-gray-500 py-3 px-4 rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
                   >
                     Annulla
                   </button>
@@ -192,10 +250,13 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                   <button
                     onClick={handleUpload}
                     disabled={isUploading}
-                    className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 px-4 rounded-lg transition-all font-medium flex items-center justify-center"
+                    className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 px-4 rounded-lg transition-all font-medium flex items-center justify-center disabled:cursor-not-allowed"
                   >
                     {isUploading ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                      <>
+                        <Loader className="h-5 w-5 mr-2 animate-spin" />
+                        Caricamento...
+                      </>
                     ) : (
                       <>
                         <Check className="h-4 w-4 mr-2" />
@@ -211,7 +272,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
           {/* Nota informativa */}
           <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-blue-800 text-sm">
-              <strong>📸 Nota:</strong> Le foto caricate saranno visibili a tutti i membri della tua cima e contribuiranno al completamento delle prove di gruppo.
+              <strong>📸 Nota:</strong> Le foto caricate saranno visibili a tutti i membri della tua cima su tutti i dispositivi e contribuiranno al completamento delle prove di gruppo.
             </p>
           </div>
         </div>
