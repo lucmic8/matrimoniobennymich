@@ -253,14 +253,25 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                     >
                       Cambia foto
                     </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="mb-6">
-                  <div className="border-2 border-dashed border-amber-300 rounded-lg p-8 text-center mb-4">
-                    <Image className="h-12 w-12 text-amber-600 mx-auto mb-4" />
-                    <p className="text-amber-800 font-medium mb-2">Nessuna foto caricata</p>
-                    <p className="text-amber-600 text-sm">Scegli un'opzione qui sotto per aggiungere una foto</p>
+                  <div className="flex gap-2 mt-2">
+                    <button 
+                      onClick={() => {
+                        const debugDiv = document.getElementById('dropbox-debug');
+                        if (debugDiv) debugDiv.style.display = 'block';
+                      }}
+                      className="text-xs bg-amber-500 text-white px-2 py-1 rounded"
+                    >
+                      📱 Debug Mobile
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const debugDiv = document.getElementById('debug-content');
+                        if (debugDiv) debugDiv.innerHTML = '';
+                      }}
+                      className="text-xs bg-gray-500 text-white px-2 py-1 rounded"
+                    >
+                      🗑️ Pulisci Log
+                    </button>
                   </div>
                 </div>
               )}
