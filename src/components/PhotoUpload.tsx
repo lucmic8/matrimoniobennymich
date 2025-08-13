@@ -338,23 +338,22 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
           )}
 
           {/* Debug info in development */}
-          {process.env.NODE_ENV === 'development' && selectedFile && (
-            <div className="mt-4 p-3 bg-gray-100 rounded-lg text-xs">
-              <p><strong>🔧 Mobile Debug Info:</strong></p>
-              <p>Nome: {selectedFile.name || 'N/A'}</p>
-              <p>Tipo: {selectedFile.type}</p>
-              <p>Dimensione: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
-              <p>Ultima modifica: {new Date(selectedFile.lastModified).toLocaleString()}</p>
-            </div>
-          )}
-          
           {selectedFile && (
-            <div className="mt-4 p-3 bg-blue-100 rounded-lg text-xs">
-              <p><strong>Debug Info:</strong></p>
+            <div className="mt-4 p-3 bg-gray-100 rounded-lg text-xs">
+              <p><strong>🔧 Debug Info File:</strong></p>
               <p>Nome: {selectedFile.name || 'N/A'}</p>
               <p>Tipo: {selectedFile.type}</p>
               <p>Dimensione: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
               <p>Ultima modifica: {new Date(selectedFile.lastModified).toLocaleString()}</p>
+              <button 
+                onClick={() => {
+                  const debugDiv = document.getElementById('dropbox-debug');
+                  if (debugDiv) debugDiv.style.display = 'block';
+                }}
+                className="mt-2 text-xs bg-amber-500 text-white px-2 py-1 rounded"
+              >
+                📱 Mostra Debug Mobile
+              </button>
             </div>
           )}
 

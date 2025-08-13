@@ -1,5 +1,38 @@
 import { Dropbox } from 'dropbox';
 
+// Sistema di debug mobile
+class MobileDebugger {
+  static log(message: string, data?: any) {
+    const timestamp = new Date().toLocaleTimeString();
+    const fullMessage = `[${timestamp}] ${message}`;
+    
+    console.log(fullMessage, data || '');
+    
+    // Mostra debug su mobile
+    const debugDiv = document.getElementById('dropbox-debug');
+    const contentDiv = document.getElementById('debug-content');
+    
+    if (debugDiv && contentDiv) {
+      debugDiv.style.display = 'block';
+      const logEntry = document.createElement('div');
+      logEntry.style.marginBottom = '3px';
+      logEntry.style.padding = '2px';
+      logEntry.style.backgroundColor = message.includes('❌') ? '#fee' : 
+                                      message.includes('✅') ? '#efe' : '#f9f9f9';
+      logEntry.innerHTML = `${fullMessage}${data ? '<br><small>' + JSON.stringify(data, null, 2) + '</small>' : ''}`;
+      contentDiv.appendChild(logEntry);
+      contentDiv.scrollTop = contentDiv.scrollHeight;
+    }
+  }
+
+  static clear() {
+    const contentDiv = document.getElementById('debug-content');
+    if (contentDiv) {
+      contentDiv.innerHTML = '';
+    }
+  }
+}
+
 export class DropboxService {
   private static dbx: Dropbox | null = null;
   private static accessToken: string | null = null;
@@ -84,47 +117,66 @@ export class DropboxService {
 
   // Carica una foto su Dropbox
   static async uploadPhoto(file: File, guildId: string, challengeId: number): Promise<string> {
+    MobileDebugger.clear();
+    MobileDebugger.log('🚀 INIZIO UPLOAD DROPBOX');
+    MobileDebugger.log('📁 File info', {
+      name: file.name || 'NO_NAME',
+      size: file.size,
+      type: file.type || 'NO_TYPE',
+      sizeKB: (file.size / 1024).toFixed(2) + ' KB',
+      sizeMB: (file.size / 1024 / 1024).toFixed(2) + ' MB'
+    });
+
     // Verifica e inizializza Dropbox se necessario
     if (!this.isConfigured()) {
-      console.log('Dropbox non configurato, tentativo di inizializzazione...');
+      MobileDebugger.log('⚙️ Dropbox non configurato, inizializzazione...');
       const initialized = await this.initializeWithDefaultToken();
       if (!initialized) {
+        MobileDebugger.log('❌ ERRORE: Impossibile inizializzare Dropbox');
         throw new Error('❌ DROPBOX NON CONFIGURATO\n\nDevi configurare il tuo token Dropbox personale:\n1. Vai su https://www.dropbox.com/developers/apps\n2. Crea una nuova app\n3. Genera un token di accesso\n4. Inseriscilo nelle impostazioni del sito');
       }
+      MobileDebugger.log('✅ Dropbox inizializzato con successo');
     }
 
     try {
-      console.log('Upload Dropbox - File info:', { 
-        name: file.name, 
-        size: file.size, 
-        type: file.type 
-      });
-      
       const fileExt = this.getFileExtension(file);
       const fileName = `${guildId}_challenge_${challengeId}_${Date.now()}.${fileExt}`;
       const filePath = `/sfida-cime/${guildId}/${fileName}`;
+      
+      MobileDebugger.log('📂 Path generato', {
+        fileName,
+        filePath,
+        extension: fileExt
+      });
 
       // Converti il file in ArrayBuffer con gestione errori migliorata
       let arrayBuffer: ArrayBuffer;
       try {
+        MobileDebugger.log('🔄 Conversione in ArrayBuffer...');
         arrayBuffer = await file.arrayBuffer();
-        console.log('ArrayBuffer creato, dimensione:', arrayBuffer.byteLength, 'bytes');
+        MobileDebugger.log('✅ ArrayBuffer creato', {
+          byteLength: arrayBuffer.byteLength,
+          bytes: arrayBuffer.byteLength + ' bytes'
+        });
       } catch (error) {
-        console.error('Errore nella conversione ArrayBuffer:', error);
+        MobileDebugger.log('❌ ERRORE conversione ArrayBuffer', error);
         throw new Error('Impossibile elaborare il file immagine');
       }
 
       if (arrayBuffer.byteLength === 0) {
+        MobileDebugger.log('❌ ERRORE: ArrayBuffer vuoto');
         throw new Error('File vuoto o corrotto');
       }
 
       // Verifica che il file sia effettivamente un'immagine
       if (!this.isValidImageFile(file)) {
+        MobileDebugger.log('❌ ERRORE: File non valido secondo isValidImageFile');
         throw new Error('Il file selezionato non è un\'immagine valida');
       }
+      MobileDebugger.log('✅ File validato come immagine');
 
       // Carica il file su Dropbox
-      console.log('Caricamento su Dropbox path:', filePath);
+      MobileDebugger.log('📤 Caricamento su Dropbox...', { path: filePath });
       const response = await this.dbx.filesUpload({
         path: filePath,
         contents: arrayBuffer,
@@ -132,21 +184,27 @@ export class DropboxService {
         autorename: true
       });
       
-      console.log('Upload completato:', response.result.name);
+      MobileDebugger.log('✅ Upload completato', {
+        name: response.result.name,
+        size: response.result.size,
+        path: response.result.path_lower
+      });
 
       // Crea un link condiviso per il file con retry
       let sharedLink;
       try {
-        console.log('Creazione link condiviso...');
+        MobileDebugger.log('🔗 Creazione link condiviso...');
         sharedLink = await this.dbx.sharingCreateSharedLinkWithSettings({
           path: response.result.path_lower!,
           settings: {
             requested_visibility: 'public'
           }
         });
-        console.log('Link condiviso creato:', sharedLink.result.url);
+        MobileDebugger.log('✅ Link condiviso creato', {
+          url: sharedLink.result.url.substring(0, 50) + '...'
+        });
       } catch (linkError) {
-        console.warn('Errore creazione link condiviso, tentativo con metodo alternativo:', linkError);
+        MobileDebugger.log('⚠️ Errore link condiviso, provo metodo alternativo', linkError);
         
         // Fallback: prova con metodo semplice
         try {
@@ -154,28 +212,35 @@ export class DropboxService {
             path: response.result.path_lower!
           });
           sharedLink = simpleLinkResponse;
-          console.log('Link semplice creato:', sharedLink.result.url);
+          MobileDebugger.log('✅ Link semplice creato', {
+            url: sharedLink.result.url.substring(0, 50) + '...'
+          });
         } catch (simpleLinkError) {
-          console.error('Anche il link semplice è fallito:', simpleLinkError);
+          MobileDebugger.log('❌ ERRORE: Anche link semplice fallito', simpleLinkError);
           throw new Error('Impossibile creare link condiviso per la foto');
         }
       }
 
       // Converti il link Dropbox in un link diretto per le immagini
       const directLink = sharedLink.result.url.replace('?dl=0', '?raw=1');
-      console.log('Link diretto creato:', directLink);
+      MobileDebugger.log('✅ 🎉 UPLOAD COMPLETATO CON SUCCESSO!', {
+        directLink: directLink.substring(0, 50) + '...'
+      });
       
       return directLink;
     } catch (error) {
-      console.error('Errore nel caricamento su Dropbox:', error);
+      MobileDebugger.log('❌ ERRORE FINALE nel caricamento', error);
       
       // Errori specifici più utili
       if (error instanceof Error) {
         if (error.message.includes('invalid_access_token') || error.message.includes('expired_access_token')) {
+          MobileDebugger.log('❌ ERRORE: Token scaduto/invalido');
           throw new Error('❌ TOKEN DROPBOX SCADUTO\n\nIl tuo token di accesso Dropbox è scaduto o non valido.\nDevi generarne uno nuovo su https://www.dropbox.com/developers/apps');
         } else if (error.message.includes('insufficient_space')) {
+          MobileDebugger.log('❌ ERRORE: Spazio insufficiente');
           throw new Error('❌ SPAZIO DROPBOX INSUFFICIENTE\n\nNon hai abbastanza spazio su Dropbox per caricare la foto.');
         } else if (error.message.includes('rate_limit')) {
+          MobileDebugger.log('❌ ERRORE: Rate limit');
           throw new Error('❌ TROPPI CARICAMENTI\n\nHai superato il limite di caricamenti Dropbox. Riprova tra qualche minuto.');
         }
       }
@@ -215,7 +280,7 @@ export class DropboxService {
 
   // Verifica che il file sia un'immagine valida
   private static isValidImageFile(file: File): boolean {
-    console.log('🔍 VALIDAZIONE FILE MOBILE:', { 
+    MobileDebugger.log('🔍 VALIDAZIONE FILE MOBILE', { 
       name: file.name || 'NO_NAME', 
       type: file.type, 
       size: file.size,
@@ -227,19 +292,19 @@ export class DropboxService {
     
     // 1. Verifica che il file abbia contenuto (priorità assoluta)
     if (file.size === 0) {
-      console.error('❌ File vuoto');
+      MobileDebugger.log('❌ File vuoto');
       return false;
     }
     
     // 2. Verifica dimensione minima ragionevole per un'immagine
     if (file.size < 50) {
-      console.error('❌ File troppo piccolo per essere un\'immagine:', file.size);
+      MobileDebugger.log('❌ File troppo piccolo', { size: file.size });
       return false;
     }
     
     // 3. REGOLA MOBILE: Se ha dimensione > 1KB, è probabilmente un'immagine valida
     if (file.size >= 1000) {
-      console.log('✅ MOBILE: File con dimensione ragionevole (>1KB) - ACCETTATO AUTOMATICAMENTE');
+      MobileDebugger.log('✅ MOBILE: File >1KB - ACCETTATO AUTOMATICAMENTE');
       return true;
     }
     
@@ -253,7 +318,7 @@ export class DropboxService {
     
     // 5. Se ha tipo MIME valido o è vuoto, accetta
     if (!file.type || validTypes.includes(file.type)) {
-      console.log('✅ MOBILE: Tipo MIME valido o vuoto - ACCETTATO');
+      MobileDebugger.log('✅ MOBILE: Tipo MIME valido - ACCETTATO');
       return true;
     }
     
@@ -262,13 +327,13 @@ export class DropboxService {
     if (file.name && file.name.includes('.')) {
       const ext = file.name.split('.').pop()?.toLowerCase();
       if (ext && validExtensions.includes(ext)) {
-        console.log('✅ MOBILE: Estensione valida - ACCETTATO');
+        MobileDebugger.log('✅ MOBILE: Estensione valida - ACCETTATO');
         return true;
       }
     }
     
     // 7. FALLBACK FINALE: Se è arrivato qui e ha dimensione > 50 bytes, accetta comunque
-    console.log('✅ MOBILE: FALLBACK - File con contenuto valido - ACCETTATO');
+    MobileDebugger.log('✅ MOBILE: FALLBACK - ACCETTATO');
     return true;
   }
 
