@@ -141,8 +141,8 @@ function GuildPage() {
       const completedKey = `completed_${guildId}`;
       localStorage.setItem(completedKey, JSON.stringify(Array.from(newCompleted)));
     } catch (error) {
-      console.error('Errore nell\'aggiornamento del progresso:', error);
-      // Salva almeno nel localStorage
+      console.warn('Salvataggio progresso in modalità locale:', error);
+      // Salva nel localStorage (comportamento normale quando Supabase non è configurato)
       const completedKey = `completed_${guildId}`;
       localStorage.setItem(completedKey, JSON.stringify(Array.from(newCompleted)));
     }
@@ -184,8 +184,8 @@ function GuildPage() {
         localStorage.removeItem(photoKey);
       }
     } catch (error) {
-      console.error('Errore nell\'aggiornamento:', error);
-      // In caso di errore, salva almeno nel localStorage
+      console.warn('Salvataggio in modalità locale:', error);
+      // Salva nel localStorage (questo è il comportamento normale quando Supabase non è configurato)
       const completedKey = `completed_${guildId}`;
       localStorage.setItem(completedKey, JSON.stringify(Array.from(newCompleted)));
       if (photoUrl) {

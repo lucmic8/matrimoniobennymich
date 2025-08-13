@@ -205,8 +205,15 @@ export class PhotoService {
 
   // Gestione del progresso delle sfide
   static async updateChallengeProgress(guildId: string, challengeId: number, completed: boolean): Promise<void> {
-    if (!supabase) {
-      throw new Error('Supabase non configurato. Clicca su "Connect to Supabase" per sincronizzare il progresso.');
+    const isConfigured = await isSupabaseConfigured()
+    if (!isConfigured) {
+      // Fallback al localStorage
+      const progressKey = `progress_${guildId}_${challengeId}`
+      localStorage.setItem(progressKey, JSON.stringify({
+        completed: completed,
+        updated_at: new Date().toISOString()
+      }))
+      return
     }
 
     try {
@@ -226,15 +233,20 @@ export class PhotoService {
       }
     } catch (error) {
       console.error('Errore nell\'aggiornamento del progresso:', error)
-      throw new Error('Impossibile aggiornare il progresso')
+      // Fallback al localStorage in caso di errore
+      const progressKey = `progress_${guildId}_${challengeId}`
+      localStorage.setItem(progressKey, JSON.stringify({
+        completed: completed,
+        updated_at: new Date().toISOString()
+      }))
     }
   }
 
   // Ottieni il progresso di una gilda
   static async getGuildProgress(guildId: string): Promise<GuildProgress[]> {
-    if (!supabase) {
-      console.warn('Supabase non configurato, ritorno array vuoto');
-      return [];
+    const isConfigured = await isSupabaseConfigured()
+    if (!isConfigured) {
+      return PhotoService.getProgressFromLocalStorage(guildId)
     }
 
     try {
@@ -251,7 +263,7 @@ export class PhotoService {
       return data || []
     } catch (error) {
       console.error('Errore nel recupero del progresso:', error)
-      return []
+      return PhotoService.getProgressFromLocalStorage(guildId)
     }
   }
 
