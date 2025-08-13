@@ -16,6 +16,7 @@ import { guilds } from '../data/guilds';
 import { challenges } from '../data/challenges';
 import PhotoUpload from './PhotoUpload';
 import { PhotoService } from '../services/photoService';
+import { supabase } from '../lib/supabase';
 
 function GuildPage() {
   const { guildId } = useParams<{ guildId: string }>();
@@ -292,7 +293,12 @@ function GuildPage() {
                 <Camera className="h-8 w-8 text-cyan-700 ml-3" />
               </div>
               <p className="text-lg text-amber-800 max-w-3xl mx-auto">
-                Completate tutte le missioni per conquistare la vetta della gloria. Le foto sono condivise tra tutti i dispositivi!
+                Completate tutte le missioni per conquistare la vetta della gloria. 
+                {!supabase && (
+                  <span className="block mt-2 text-amber-700 font-semibold">
+                    ⚠️ Per condividere le foto tra dispositivi, clicca su "Connect to Supabase" in alto a destra.
+                  </span>
+                )}
               </p>
             </div>
 

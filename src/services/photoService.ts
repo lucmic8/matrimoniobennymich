@@ -5,7 +5,7 @@ export class PhotoService {
   // Carica una foto nel storage di Supabase
   static async uploadPhoto(file: File, guildId: string, challengeId: number): Promise<string> {
     if (!supabase) {
-      throw new Error('Supabase non configurato. Configura le variabili d\'ambiente.');
+      throw new Error('Per caricare le foto è necessario configurare Supabase. Clicca su "Connect to Supabase" in alto a destra nella pagina.');
     }
 
     try {
@@ -58,7 +58,7 @@ export class PhotoService {
   // Salva i metadati della foto nel database
   static async savePhotoMetadata(guildId: string, challengeId: number, photoUrl: string): Promise<void> {
     if (!supabase) {
-      throw new Error('Supabase non configurato');
+      throw new Error('Supabase non configurato. Clicca su "Connect to Supabase" per abilitare la sincronizzazione.');
     }
 
     try {
@@ -135,7 +135,7 @@ export class PhotoService {
   // Elimina una foto
   static async deletePhoto(guildId: string, challengeId: number): Promise<void> {
     if (!supabase) {
-      throw new Error('Supabase non configurato');
+      throw new Error('Supabase non configurato. Clicca su "Connect to Supabase" per abilitare la gestione delle foto.');
     }
 
     try {
@@ -185,7 +185,7 @@ export class PhotoService {
   // Gestione del progresso delle sfide
   static async updateChallengeProgress(guildId: string, challengeId: number, completed: boolean): Promise<void> {
     if (!supabase) {
-      throw new Error('Supabase non configurato');
+      throw new Error('Supabase non configurato. Clicca su "Connect to Supabase" per sincronizzare il progresso.');
     }
 
     try {

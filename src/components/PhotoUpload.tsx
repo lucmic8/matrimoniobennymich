@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Upload, Camera, Check, X, Image, Loader } from 'lucide-react';
 import { PhotoService } from '../services/photoService';
+import { supabase } from '../lib/supabase';
 
 interface PhotoUploadProps {
   challengeId: number;
@@ -287,7 +288,10 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
           {/* Nota informativa */}
           <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-blue-800 text-sm">
-              <strong>📸 Nota:</strong> Le foto caricate saranno visibili a tutti i membri della tua cima su tutti i dispositivi e contribuiranno al completamento delle prove di gruppo.
+              <strong>📸 Nota:</strong> {supabase ? 
+                'Le foto caricate saranno visibili a tutti i membri della tua cima su tutti i dispositivi e contribuiranno al completamento delle prove di gruppo.' :
+                'Per condividere le foto tra dispositivi, clicca su "Connect to Supabase" in alto a destra. Senza Supabase, le foto saranno salvate solo localmente su questo dispositivo.'
+              }
             </p>
           </div>
         </div>
