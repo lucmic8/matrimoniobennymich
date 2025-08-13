@@ -191,7 +191,6 @@ app.post('/api/upload-dropbox', async (req, res) => {
             result: { upload: uploadResult, link: simpleLinkResult }
           });
         }
-        });
       }
     } else {
       // Upload riuscito ma senza path_lower (caso anomalo)
