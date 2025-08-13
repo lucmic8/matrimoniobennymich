@@ -6,7 +6,7 @@ export class DropboxService {
   
   // IMPORTANTE: Il token predefinito potrebbe essere scaduto
   // Gli utenti devono configurare il proprio token Dropbox
-  private static readonly DEFAULT_ACCESS_TOKEN = '';
+  private static readonly DEFAULT_ACCESS_TOKEN = 'sl.u.AF7hxWVqLn0us-e3Y9-qrwd_II587Mgt773rRADcwDUgKVlpXRJYikYqSwkJOIq2lnZlgG77b_bX9DTxhUlmx8mY97MXqHCanOxMucziM0LJXVUo7mojZSoPMkcxLFaI0IxVBxc0cjFgXkDC8N2SQObR4-_bk6mcI3gj3eUxSABRc0ULB0JS81by6NtnITNkX1FY1g8feG5x6ATzUqI61UXlWB2GyrmrcXkp_KilMTjiRRBA3d5CW4RjasUXoyt2liJXWmStfShJIHROyVChkh2QPncI_qyn2S14mvISKPp4UD04CmUC6M5zr8GMWW3jKA60fsm5PpV2N3SMY1wNp_-a-MaoZeZyhDkXXRb6dpKIq4efKRUUucMHjCCHJaqOnpPq_jHgrtLjIX1bmFEQidQSzmT6k9qBG0G51PGJBeTS-AtRGRCHutvNkvMbFWQXB1eNAuNZsostaboUi3rQ9gI6GPmQqtk2dhwR953RSnBeS58JDdn_87s8s_lJqS788TCYudqUK-VeCTcb-qg6PGM_cZITbABonaQ4mMiIdyxiIfBoAYanV9exgrdMwyaLx5L2heb4_Wwwasol_BA8hjQWG3hwh-kdsVJGpsoHnxhl3wawQVFkU7SZ3pmpf-Mb3a5xu2ZD-VRXaycS9o5V9-1-JO2nj4cfRCWK8QYcrraaKlkBagJd8tL4ixma2K_IRgxS9TY8iER5YgLVVyfUijLLM3zzCrDJcS4VNNyerW5JECe85g1lfTm5aEX6ul4y-oPq50EX_aMX2I_gSAFFF6gUiNnmdK6GZJsmizYTRAX789Sy_oKvWCdkhGhUnqcQqEC2YxtGPQAVS6LXLy0Chjd426Pq-jJaFADrSKQir3EytzjK66Xl7jUl1qIdP-sQZHzgOGDJ2dr4sEq_085pH-vMeWOg1FVY_AatTb_vaCrlr-RuLSbwzgJau4ryN5t0fLIC84A3TKWp6tz9Od884ODMqqqH3kxOeEMifpvFoN_URgJ3Px1k58TdTPUSN1F-ZI5nhwdn_Dca1RMHErWCYOd9YYXmmj6pZPlPgUEE3iOE_nD0ymGm7CdXfih-IJvPeJpXSix61qX7YyUTyzT5y1iJPm0x_SmsXvz4YM0bUMy3BzjrPwjKobTkGKFX9B901y5-YgOSNKWyOSgRuja4zeGWpPVSS6Ar8-bQ3_2gdrwnzUR2cvvOyLi4gNT-k4rrnpUHeVDVjUC5JlCxShKM7Q9p_8saYuzaMwFXnJPbnMyTWy6-yXuv6IQWwoywQe5XdwuwD9o7d2yqTvw9DBwwYCXlGhzZEZCHrl5BK8FXD2txhps7otjUSJCpVb9s0jyw_RtIRS6a3Ys-7-zUXRPSyfMtFrj-05GsisndInyYeMDNM_Z1mj1CgM3x-LAQU-Qt_-eN0fD4IM0KpCZA2JxAA8RtH2qBOyr6tfz21yowIMxTtQ';
 
   // Inizializza Dropbox con il token di accesso
   static initialize(accessToken: string) {
@@ -31,7 +31,7 @@ export class DropboxService {
       // Fallback al token predefinito (se presente)
       if (this.DEFAULT_ACCESS_TOKEN && this.DEFAULT_ACCESS_TOKEN.length > 50) {
         this.initialize(this.DEFAULT_ACCESS_TOKEN);
-        console.log('Dropbox inizializzato con token predefinito');
+        console.log('✅ Dropbox inizializzato con token predefinito configurato');
         return this.verifyConnection();
       }
       
@@ -64,7 +64,12 @@ export class DropboxService {
   // Inizializzazione sicura con fallback
   static initializeWithFallback() {
     try {
+      if (!this.DEFAULT_ACCESS_TOKEN || this.DEFAULT_ACCESS_TOKEN.length < 50) {
+        console.error('❌ Token Dropbox predefinito non configurato');
+        return false;
+      }
       this.initialize(this.DEFAULT_ACCESS_TOKEN);
+      console.log('✅ Dropbox inizializzato con fallback');
       return true;
     } catch (error) {
       console.warn('Dropbox non disponibile, uso fallback locale:', error);

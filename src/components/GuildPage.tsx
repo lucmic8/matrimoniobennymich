@@ -48,7 +48,7 @@ function GuildPage() {
       const initialized = DropboxService.initializeWithDefaultToken();
       if (initialized) {
         setDropboxConfigured(true);
-        console.log('✅ Dropbox configurato automaticamente');
+        console.log('✅ Dropbox configurato automaticamente con token utente');
         return;
       }
       
