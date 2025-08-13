@@ -216,14 +216,14 @@ export class PhotoService {
     
     // Assicurati che Dropbox sia sempre configurato
     if (!DropboxService.isConfigured()) {
-      console.log('Dropbox non configurato, inizializzo automaticamente...');
+      console.log('⚙️ Dropbox non configurato, inizializzo automaticamente...');
       DropboxService.initializeWithDefaultToken();
     }
 
     try {
       const syncedData = await DropboxService.loadDataFile(guildId);
       if (!syncedData) {
-        console.log('Nessun dato sincronizzato trovato');
+        console.log('📭 Nessun dato sincronizzato trovato per:', guildId);
         return;
       }
 
@@ -231,23 +231,28 @@ export class PhotoService {
       const localLastSync = localStorage.getItem(`lastSync_${guildId}`);
       const remoteLastSync = syncedData.lastSync;
       
-      console.log('🕐 Confronto timestamp:', { 
+      console.log('🕐 Confronto timestamp per', guildId, ':', { 
         locale: localLastSync, 
-        remoto: remoteLastSync 
+        remoto: remoteLastSync,
+        fotosRemote: Object.keys(syncedData.photos || {}).length,
+        progressRemoto: Object.keys(syncedData.progress || {}).length
       });
       
       if (localLastSync && remoteLastSync) {
         const localDate = new Date(localLastSync);
         const remoteDate = new Date(remoteLastSync);
         
-        if (localDate >= remoteDate) {
-          console.log('✅ Dati locali già aggiornati');
+        if (localDate > remoteDate) {
+          console.log('✅ Dati locali più recenti per:', guildId);
           return;
         }
       }
 
       // Applica i dati sincronizzati
-      console.log('📥 Applicazione dati sincronizzati...');
+      console.log('📥 Applicazione dati sincronizzati per:', guildId);
+      
+      let photosApplied = 0;
+      let progressApplied = 0;
       
       // Applica foto e metadati
       Object.entries(syncedData.photos || {}).forEach(([challengeId, metadata]) => {
@@ -256,20 +261,27 @@ export class PhotoService {
         
         localStorage.setItem(photoKey, (metadata as any).photo_url);
         localStorage.setItem(metadataKey, JSON.stringify(metadata));
+        photosApplied++;
       });
 
       // Applica progresso
       Object.entries(syncedData.progress || {}).forEach(([challengeId, progress]) => {
         const progressKey = `progress_${guildId}_${challengeId}`;
         localStorage.setItem(progressKey, JSON.stringify(progress));
+        progressApplied++;
       });
 
       // Aggiorna timestamp locale
       localStorage.setItem(`lastSync_${guildId}`, syncedData.lastSync);
       
-      console.log('✅ Sincronizzazione completata con successo');
+      console.log('✅ Sincronizzazione completata:', {
+        guildId,
+        fotosApplicate: photosApplied,
+        progressApplicato: progressApplied,
+        timestamp: syncedData.lastSync
+      });
     } catch (error) {
-      console.error('Errore nel caricamento dati sincronizzati:', error);
+      console.error('❌ Errore nel caricamento dati sincronizzati per', guildId, ':', error);
       // Non lanciare errore per non bloccare l'app
     }
   }

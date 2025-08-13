@@ -655,11 +655,13 @@ export class DropboxService {
   // Carica un file di dati JSON da Dropbox
   static async loadDataFile(guildId: string): Promise<any> {
     if (!this.dbx) {
+      console.log('❌ Dropbox non configurato per loadDataFile');
       return null;
     }
 
     try {
       const filePath = `/sfida-cime/${guildId}/${guildId}_data.json`;
+      console.log('📂 Tentativo caricamento file dati:', filePath);
       
       const response = await this.dbx.filesDownload({
         path: filePath
@@ -669,9 +671,15 @@ export class DropboxService {
       const fileBlob = (response.result as any).fileBinary;
       const text = new TextDecoder().decode(fileBlob);
       
+      console.log('📄 File dati caricato:', {
+        path: filePath,
+        size: text.length,
+        preview: text.substring(0, 100) + '...'
+      });
+      
       return JSON.parse(text);
     } catch (error) {
-      console.log('Nessun file dati trovato su Dropbox per gilda:', guildId);
+      console.log('📭 Nessun file dati trovato su Dropbox per gilda:', guildId, error instanceof Error ? error.message : '');
       return null;
     }
   }

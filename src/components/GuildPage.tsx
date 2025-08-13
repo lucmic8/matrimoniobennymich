@@ -30,6 +30,7 @@ function GuildPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showDropboxConfig, setShowDropboxConfig] = useState(false);
   const [dropboxConfigured, setDropboxConfigured] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -40,6 +41,15 @@ function GuildPage() {
   useEffect(() => {
     loadGuildData();
     autoConfigureDropbox();
+    
+    // Polling per sincronizzazione automatica ogni 30 secondi
+    const syncInterval = setInterval(() => {
+      if (guildId && !isRefreshing) {
+        loadGuildData();
+      }
+    }, 30000);
+    
+    return () => clearInterval(syncInterval);
   }, [guildId]);
 
   const autoConfigureDropbox = () => {
@@ -89,6 +99,8 @@ function GuildPage() {
         photos: photos.length, 
         completed: completedSet.size 
       });
+      
+      setLastSyncTime(new Date().toLocaleTimeString('it-IT'));
       
     } catch (error) {
       console.error('Errore nel caricamento dei dati:', error);
@@ -248,11 +260,11 @@ function GuildPage() {
                     <button
                       onClick={refreshData}
                       disabled={isRefreshing}
-                      className="text-amber-600 hover:text-amber-800 transition-colors disabled:opacity-50 flex items-center gap-1"
+                      className="text-amber-600 hover:text-amber-800 transition-colors disabled:opacity-50 flex items-center gap-1 text-sm"
                       title="Sincronizza dati tra dispositivi"
                     >
                       <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                      {isRefreshing && <span className="text-xs">Sync...</span>}
+                      {isRefreshing ? 'Sync...' : 'Sync'}
                     </button>
                   </div>
                 </div>
@@ -267,6 +279,11 @@ function GuildPage() {
                    completionPercentage >= 50 ? '⚔️ Ottimo lavoro, continuate così!' : 
                    '🗡️ La vostra avventura è appena iniziata!'}
                 </p>
+                {lastSyncTime && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Ultimo aggiornamento: {lastSyncTime}
+                  </p>
+                )}
               </div>
             </div>
           </div>
