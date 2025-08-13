@@ -215,28 +215,49 @@ export class DropboxService {
 
   // Verifica che il file sia un'immagine valida
   private static isValidImageFile(file: File): boolean {
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', ''];
+    const validTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'application/octet-stream', // File generici da mobile
+      '', // File senza tipo MIME
+      'image/heic', 'image/heif' // Formati iPhone
+    ];
+    const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', ''];
     
-    console.log('Validazione file:', { 
+    console.log('🔍 VALIDAZIONE FILE MOBILE:', { 
       name: file.name || 'NO_NAME', 
       type: file.type, 
-      size: file.size 
+      size: file.size,
+      lastModified: new Date(file.lastModified).toISOString(),
+      constructor: file.constructor.name
     });
     
-    // Controlla il tipo MIME (prioritario per foto da telefono)
-    if (!validTypes.includes(file.type)) {
-      console.warn('Tipo MIME non standard:', file.type);
-      // Per foto da telefono, accetta anche se il tipo MIME è vuoto ma il file ha contenuto
-      if (!file.type && file.size > 0) {
-        console.log('File senza tipo MIME ma con contenuto - probabilmente foto da telefono');
+    // Verifica che il file abbia contenuto (priorità assoluta)
+    if (file.size === 0) {
+      console.error('❌ File vuoto');
+      return false;
+    }
+    
+    // Verifica dimensione minima ragionevole per un'immagine
+    if (file.size < 50) {
+      console.error('❌ File troppo piccolo per essere un\'immagine:', file.size);
+      return false;
+    }
+    
+    // Per file da mobile, se ha dimensione ragionevole, accetta sempre
+    if (file.size > 1000) {
+      console.log('✅ File con dimensione ragionevole - accettato per mobile');
+      return true;
+    }
+    
+    // Controllo tipo MIME solo se specificato
+    if (file.type && !validTypes.includes(file.type)) {
+      console.warn('⚠️ Tipo MIME non riconosciuto:', file.type);
+      // Se ha dimensione ragionevole, accetta comunque
+      if (file.size > 1000) {
+        console.log('✅ Accettato comunque per dimensione');
         return true;
       }
-      // Accetta anche tipi MIME generici per compatibilità mobile
-      if (file.type === 'application/octet-stream' && file.size > 0) {
-        console.log('File con tipo generico - probabilmente foto da telefono');
-        return true;
-      }
+      console.error('❌ Tipo MIME non valido e dimensione troppo piccola');
       return false;
     }
     
@@ -244,20 +265,19 @@ export class DropboxService {
     if (file.name && file.name.includes('.')) {
       const ext = file.name.split('.').pop()?.toLowerCase();
       if (ext && !validExtensions.includes(ext)) {
-        console.warn('Estensione non valida:', ext);
-        return false;
+        console.warn('⚠️ Estensione non riconosciuta:', ext);
+        // Se ha dimensione ragionevole, accetta comunque
+        if (file.size > 1000) {
+          console.log('✅ Accettato comunque per dimensione');
+          return true;
+        }
+        console.error('❌ Estensione non valida e dimensione troppo piccola');
       }
     } else {
-      console.log('File senza nome/estensione - probabilmente foto da telefono');
+      console.log('📱 File senza nome/estensione - foto da telefono');
     }
     
-    // Verifica che il file abbia contenuto
-    if (file.size === 0) {
-      console.error('File vuoto');
-      return false;
-    }
-    
-    console.log('✅ File validato con successo');
+    console.log('✅ File validato con successo per mobile');
     return true;
   }
 

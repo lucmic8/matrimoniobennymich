@@ -60,6 +60,12 @@ function HomePage() {
                   </span>
                 </h1>
                 
+                <div className="bg-green-100 border border-green-300 rounded-lg p-2 mb-4">
+                  <p className="text-green-800 text-xs font-mono">
+                    🔧 BUILD v2.1 - Mobile Photo Fix - {new Date().toLocaleString('it-IT')}
+                  </p>
+                </div>
+                
                 <h2 className="text-2xl md:text-3xl font-semibold text-amber-800 mb-8">
                   Nozze ad Alta Quota
                 </h2>
