@@ -16,7 +16,7 @@ import { guilds } from '../data/guilds';
 import { challenges } from '../data/challenges';
 import PhotoUpload from './PhotoUpload';
 import { PhotoService } from '../services/photoService';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 function GuildPage() {
   const { guildId } = useParams<{ guildId: string }>();
@@ -26,6 +26,7 @@ function GuildPage() {
   const [uploadingChallenge, setUploadingChallenge] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [supabaseConfigured, setSupabaseConfigured] = useState(false);
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -42,6 +43,10 @@ function GuildPage() {
     
     setIsLoading(true);
     try {
+      // Verifica se Supabase è configurato
+      const configured = await isSupabaseConfigured();
+      setSupabaseConfigured(configured);
+      
       // Carica le foto delle sfide
       const photos = await PhotoService.getGuildPhotos(guildId);
       const photoMap = new Map<number, string>();
@@ -294,7 +299,7 @@ function GuildPage() {
               </div>
               <p className="text-lg text-amber-800 max-w-3xl mx-auto">
                 Completate tutte le missioni per conquistare la vetta della gloria. 
-                {!supabaseConnected && (
+                {!supabaseConfigured && (
                   <span className="block mt-2 text-amber-700 font-semibold">
                     ⚠️ Modalità offline: le foto vengono salvate solo su questo dispositivo.
                   </span>

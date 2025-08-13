@@ -8,7 +8,7 @@ export class PhotoService {
     const isConfigured = await isSupabaseConfigured()
     if (!isConfigured) {
       // Fallback al localStorage per ora
-      const base64 = await this.fileToBase64(file)
+      const base64 = await PhotoService.fileToBase64(file)
       const photoKey = `photo_${guildId}_${challengeId}`
       localStorage.setItem(photoKey, base64)
       return base64
@@ -107,7 +107,7 @@ export class PhotoService {
     const isConfigured = await isSupabaseConfigured()
     if (!isConfigured) {
       // Fallback al localStorage
-      return this.getPhotosFromLocalStorage(guildId)
+      return PhotoService.getPhotosFromLocalStorage(guildId)
     }
 
     try {
@@ -274,5 +274,25 @@ export class PhotoService {
       }
     }
     return progress
+  }
+
+  // Ottieni le foto dal localStorage (fallback)
+  private static getPhotosFromLocalStorage(guildId: string): ChallengePhoto[] {
+    const photos: ChallengePhoto[] = []
+    for (let i = 1; i <= 15; i++) { // Assumendo 15 sfide
+      const photoKey = `photo_${guildId}_${i}`
+      const savedPhoto = localStorage.getItem(photoKey)
+      if (savedPhoto) {
+        photos.push({
+          id: `${guildId}_${i}`,
+          guild_id: guildId,
+          challenge_id: i,
+          photo_url: savedPhoto,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+      }
+    }
+    return photos
   }
 }
