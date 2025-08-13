@@ -174,6 +174,16 @@ function GuildPage() {
       }
     } catch (error) {
       console.error('Errore nell\'aggiornamento:', error);
+      // In caso di errore, salva almeno nel localStorage
+      const completedKey = `completed_${guildId}`;
+      localStorage.setItem(completedKey, JSON.stringify(Array.from(newCompleted)));
+      if (photoUrl) {
+        const photoKey = `photo_${guildId}_${challengeId}`;
+        localStorage.setItem(photoKey, photoUrl);
+      } else {
+        const photoKey = `photo_${guildId}_${challengeId}`;
+        localStorage.removeItem(photoKey);
+      }
     }
   };
 

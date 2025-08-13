@@ -4,7 +4,16 @@ import type { ChallengePhoto, GuildProgress } from '../lib/supabase'
 export class PhotoService {
   // Carica una foto nel storage di Supabase
   static async uploadPhoto(file: File, guildId: string, challengeId: number): Promise<string> {
+    if (!supabase) {
+      throw new Error('Supabase non configurato. Configura le variabili d\'ambiente.');
+    }
+
     try {
+      // Verifica che il file sia valido
+      if (!file || file.size === 0) {
+        throw new Error('File non valido');
+      }
+
       const fileExt = file.name.split('.').pop()
       const fileName = `${guildId}_${challengeId}_${Date.now()}.${fileExt}`
       const filePath = `${guildId}/${fileName}`
@@ -14,10 +23,11 @@ export class PhotoService {
         .from('challenge-photos')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: true
+          upsert: false
         })
 
       if (uploadError) {
+        console.error('Errore upload Supabase:', uploadError);
         throw uploadError
       }
 
@@ -25,6 +35,10 @@ export class PhotoService {
       const { data: urlData } = supabase.storage
         .from('challenge-photos')
         .getPublicUrl(filePath)
+
+      if (!urlData || !urlData.publicUrl) {
+        throw new Error('Impossibile ottenere URL pubblico');
+      }
 
       const photoUrl = urlData.publicUrl
 
@@ -34,12 +48,19 @@ export class PhotoService {
       return photoUrl
     } catch (error) {
       console.error('Errore nel caricamento della foto:', error)
-      throw new Error('Impossibile caricare la foto')
+      if (error instanceof Error) {
+        throw new Error(`Impossibile caricare la foto: ${error.message}`);
+      }
+      throw new Error('Impossibile caricare la foto');
     }
   }
 
   // Salva i metadati della foto nel database
   static async savePhotoMetadata(guildId: string, challengeId: number, photoUrl: string): Promise<void> {
+    if (!supabase) {
+      throw new Error('Supabase non configurato');
+    }
+
     try {
       const { error } = await supabase
         .from('challenge_photos')
@@ -63,6 +84,11 @@ export class PhotoService {
 
   // Ottieni tutte le foto di una gilda
   static async getGuildPhotos(guildId: string): Promise<ChallengePhoto[]> {
+    if (!supabase) {
+      console.warn('Supabase non configurato, ritorno array vuoto');
+      return [];
+    }
+
     try {
       const { data, error } = await supabase
         .from('challenge_photos')
@@ -83,6 +109,10 @@ export class PhotoService {
 
   // Ottieni una foto specifica
   static async getChallengePhoto(guildId: string, challengeId: number): Promise<ChallengePhoto | null> {
+    if (!supabase) {
+      return null;
+    }
+
     try {
       const { data, error } = await supabase
         .from('challenge_photos')
@@ -104,23 +134,31 @@ export class PhotoService {
 
   // Elimina una foto
   static async deletePhoto(guildId: string, challengeId: number): Promise<void> {
+    if (!supabase) {
+      throw new Error('Supabase non configurato');
+    }
+
     try {
       // Prima ottieni i metadati per avere l'URL
       const photo = await this.getChallengePhoto(guildId, challengeId)
       
       if (photo) {
-        // Estrai il path dal URL pubblico
-        const url = new URL(photo.photo_url)
-        const pathParts = url.pathname.split('/')
-        const filePath = pathParts.slice(-2).join('/') // guild_id/filename
+        try {
+          // Estrai il path dal URL pubblico
+          const url = new URL(photo.photo_url)
+          const pathParts = url.pathname.split('/')
+          const filePath = pathParts.slice(-2).join('/') // guild_id/filename
 
-        // Elimina il file dal storage
-        const { error: storageError } = await supabase.storage
-          .from('challenge-photos')
-          .remove([filePath])
+          // Elimina il file dal storage
+          const { error: storageError } = await supabase.storage
+            .from('challenge-photos')
+            .remove([filePath])
 
-        if (storageError) {
-          console.error('Errore nell\'eliminazione del file:', storageError)
+          if (storageError) {
+            console.error('Errore nell\'eliminazione del file:', storageError)
+          }
+        } catch (urlError) {
+          console.error('Errore nel parsing dell\'URL:', urlError);
         }
       }
 
@@ -132,16 +170,24 @@ export class PhotoService {
         .eq('challenge_id', challengeId)
 
       if (dbError) {
+        console.error('Errore eliminazione database:', dbError);
         throw dbError
       }
     } catch (error) {
       console.error('Errore nell\'eliminazione della foto:', error)
-      throw new Error('Impossibile eliminare la foto')
+      if (error instanceof Error) {
+        throw new Error(`Impossibile eliminare la foto: ${error.message}`);
+      }
+      throw new Error('Impossibile eliminare la foto');
     }
   }
 
   // Gestione del progresso delle sfide
   static async updateChallengeProgress(guildId: string, challengeId: number, completed: boolean): Promise<void> {
+    if (!supabase) {
+      throw new Error('Supabase non configurato');
+    }
+
     try {
       const { error } = await supabase
         .from('guild_progress')
@@ -165,6 +211,11 @@ export class PhotoService {
 
   // Ottieni il progresso di una gilda
   static async getGuildProgress(guildId: string): Promise<GuildProgress[]> {
+    if (!supabase) {
+      console.warn('Supabase non configurato, ritorno array vuoto');
+      return [];
+    }
+
     try {
       const { data, error } = await supabase
         .from('guild_progress')

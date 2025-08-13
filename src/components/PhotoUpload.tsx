@@ -26,6 +26,15 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
     }
   }, [existingPhoto]);
 
+  // Cleanup degli URL blob quando il componente viene smontato
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, isCamera: boolean = false) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -42,10 +51,16 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
       }
 
       setSelectedFile(file);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      const newUrl = URL.createObjectURL(file);
+      setPreviewUrl(newUrl);
       setError(null);
     }
+    
+    // Reset input value per permettere di selezionare lo stesso file
+    event.target.value = '';
   };
 
   const handleUpload = async () => {
