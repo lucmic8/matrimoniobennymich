@@ -324,7 +324,7 @@ function GuildPage() {
               </div>
               <p className="text-sm text-amber-600 mt-1">
                 {dropboxConfigured 
-                  ? 'Le foto vengono salvate nel tuo Dropbox e sono accessibili da tutti i dispositivi'
+                  ? 'Storage cloud configurato e attivo'
                   : 'Configura Dropbox per salvare le foto nel cloud e condividerle tra dispositivi'
                 }
               </p>
