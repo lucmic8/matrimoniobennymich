@@ -60,9 +60,9 @@ function HomePage() {
                   </span>
                 </h1>
                 
-                <div className="bg-green-100 border border-green-300 rounded-lg p-2 mb-4">
-                  <p className="text-green-800 text-xs font-mono">
-                    🔧 BUILD v3.0 - Backend Server Solution - {new Date().toLocaleString('it-IT')}
+                <div className="bg-blue-100 border border-blue-300 rounded-lg p-2 mb-4">
+                  <p className="text-blue-800 text-xs font-mono">
+                    🔧 BUILD v4.0 - Direct Dropbox + Mobile Analysis - {new Date().toLocaleString('it-IT')}
                   </p>
                 </div>
                 
