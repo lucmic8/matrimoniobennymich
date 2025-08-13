@@ -62,7 +62,7 @@ function HomePage() {
                 
                 <div className="bg-blue-100 border border-blue-300 rounded-lg p-2 mb-4">
                   <p className="text-blue-800 text-xs font-mono">
-                    🔧 BUILD v4.2 - Advanced Link Creation Strategies - {new Date().toLocaleString('it-IT')}
+                    🔧 BUILD v4.3 - Mobile Upload Fixed + Auto Sync - {new Date().toLocaleString('it-IT')}
                   </p>
                 </div>
                 

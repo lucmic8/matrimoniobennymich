@@ -212,6 +212,8 @@ export class PhotoService {
 
   // Carica i dati sincronizzati da Dropbox
   static async loadSyncedData(guildId: string): Promise<void> {
+    console.log('🔄 Caricamento dati sincronizzati per gilda:', guildId);
+    
     // Assicurati che Dropbox sia sempre configurato
     if (!DropboxService.isConfigured()) {
       console.log('Dropbox non configurato, inizializzo automaticamente...');
@@ -219,8 +221,6 @@ export class PhotoService {
     }
 
     try {
-      console.log('Caricamento dati sincronizzati per gilda:', guildId);
-      
       const syncedData = await DropboxService.loadDataFile(guildId);
       if (!syncedData) {
         console.log('Nessun dato sincronizzato trovato');
@@ -231,18 +231,23 @@ export class PhotoService {
       const localLastSync = localStorage.getItem(`lastSync_${guildId}`);
       const remoteLastSync = syncedData.lastSync;
       
+      console.log('🕐 Confronto timestamp:', { 
+        locale: localLastSync, 
+        remoto: remoteLastSync 
+      });
+      
       if (localLastSync && remoteLastSync) {
         const localDate = new Date(localLastSync);
         const remoteDate = new Date(remoteLastSync);
         
         if (localDate >= remoteDate) {
-          console.log('Dati locali più recenti, skip caricamento');
+          console.log('✅ Dati locali già aggiornati');
           return;
         }
       }
 
       // Applica i dati sincronizzati
-      console.log('Applicazione dati sincronizzati...');
+      console.log('📥 Applicazione dati sincronizzati...');
       
       // Applica foto e metadati
       Object.entries(syncedData.photos || {}).forEach(([challengeId, metadata]) => {
@@ -262,7 +267,7 @@ export class PhotoService {
       // Aggiorna timestamp locale
       localStorage.setItem(`lastSync_${guildId}`, syncedData.lastSync);
       
-      console.log('Dati sincronizzati applicati con successo');
+      console.log('✅ Sincronizzazione completata con successo');
     } catch (error) {
       console.error('Errore nel caricamento dati sincronizzati:', error);
       // Non lanciare errore per non bloccare l'app
@@ -390,7 +395,7 @@ export class PhotoService {
 
   // Forza sincronizzazione manuale
   static async forceSyncGuild(guildId: string): Promise<void> {
-    console.log('Forzando sincronizzazione per gilda:', guildId);
+    console.log('🔄 Forzando sincronizzazione per gilda:', guildId);
     
     // Prima carica i dati remoti
     await this.loadSyncedData(guildId);
@@ -398,6 +403,6 @@ export class PhotoService {
     // Poi sincronizza i dati locali
     await this.syncDataToDropbox(guildId);
     
-    console.log('Sincronizzazione forzata completata');
+    console.log('✅ Sincronizzazione forzata completata');
   }
 }

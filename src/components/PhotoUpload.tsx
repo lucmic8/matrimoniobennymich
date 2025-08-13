@@ -255,24 +255,9 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                     </button>
                   </div>
                   <div className="flex gap-2 mt-2">
-                    <button 
-                      onClick={() => {
-                        const debugDiv = document.getElementById('dropbox-debug');
-                        if (debugDiv) debugDiv.style.display = 'block';
-                      }}
-                      className="text-xs bg-amber-500 text-white px-2 py-1 rounded"
-                    >
-                      📱 Debug Mobile
-                    </button>
-                    <button 
-                      onClick={() => {
-                        const debugDiv = document.getElementById('debug-content');
-                        if (debugDiv) debugDiv.innerHTML = '';
-                      }}
-                      className="text-xs bg-gray-500 text-white px-2 py-1 rounded"
-                    >
-                      🗑️ Pulisci Log
-                    </button>
+                    <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">
+                      ✅ Foto caricata e sincronizzata
+                    </div>
                   </div>
                 </div>
               ) : null}
@@ -350,24 +335,6 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
           )}
 
           {/* Debug info in development */}
-          {selectedFile && (
-            <div className="mt-4 p-3 bg-gray-100 rounded-lg text-xs">
-              <p><strong>🔧 Debug Info File:</strong></p>
-              <p>Nome: {selectedFile.name || 'N/A'}</p>
-              <p>Tipo: {selectedFile.type}</p>
-              <p>Dimensione: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
-              <p>Ultima modifica: {new Date(selectedFile.lastModified).toLocaleString()}</p>
-              <button 
-                onClick={() => {
-                  const debugDiv = document.getElementById('dropbox-debug');
-                  if (debugDiv) debugDiv.style.display = 'block';
-                }}
-                className="mt-2 text-xs bg-amber-500 text-white px-2 py-1 rounded"
-              >
-                📱 Mostra Debug Mobile
-              </button>
-            </div>
-          )}
 
         </div>
       </div>

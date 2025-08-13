@@ -1,38 +1,5 @@
 import { Dropbox } from 'dropbox';
 
-// Sistema di debug mobile
-class MobileDebugger {
-  static log(message: string, data?: any) {
-    const timestamp = new Date().toLocaleTimeString();
-    const fullMessage = `[${timestamp}] ${message}`;
-    
-    console.log(fullMessage, data || '');
-    
-    // Mostra debug su mobile
-    const debugDiv = document.getElementById('dropbox-debug');
-    const contentDiv = document.getElementById('debug-content');
-    
-    if (debugDiv && contentDiv) {
-      debugDiv.style.display = 'block';
-      const logEntry = document.createElement('div');
-      logEntry.style.marginBottom = '3px';
-      logEntry.style.padding = '2px';
-      logEntry.style.backgroundColor = message.includes('❌') ? '#fee' : 
-                                      message.includes('✅') ? '#efe' : '#f9f9f9';
-      logEntry.innerHTML = `${fullMessage}${data ? '<br><small>' + JSON.stringify(data, null, 2) + '</small>' : ''}`;
-      contentDiv.appendChild(logEntry);
-      contentDiv.scrollTop = contentDiv.scrollHeight;
-    }
-  }
-
-  static clear() {
-    const contentDiv = document.getElementById('debug-content');
-    if (contentDiv) {
-      contentDiv.innerHTML = '';
-    }
-  }
-}
-
 export class DropboxService {
   private static dbx: Dropbox | null = null;
   private static accessToken: string | null = null;
@@ -97,20 +64,7 @@ export class DropboxService {
 
   // ANALISI APPROFONDITA: Differenze PC vs Mobile
   static async uploadPhoto(file: File, guildId: string, challengeId: number): Promise<string> {
-    MobileDebugger.clear();
-    MobileDebugger.log('🚀 ANALISI APPROFONDITA PC vs MOBILE');
-    
-    // 1. ANALISI AMBIENTE
-    const environment = this.analyzeEnvironment();
-    MobileDebugger.log('🔍 AMBIENTE RILEVATO', environment);
-    
-    // 2. ANALISI FILE
-    const fileAnalysis = this.analyzeFile(file);
-    MobileDebugger.log('📁 ANALISI FILE', fileAnalysis);
-    
-    // 3. ANALISI BROWSER
-    const browserAnalysis = this.analyzeBrowser();
-    MobileDebugger.log('🌐 ANALISI BROWSER', browserAnalysis);
+    console.log('🚀 Upload foto iniziato per:', { guildId, challengeId, fileName: file.name });
 
     if (!this.dbx) {
       throw new Error('Dropbox non configurato');
@@ -128,24 +82,21 @@ export class DropboxService {
       const fileName = `${guildId}_challenge_${challengeId}_${timestamp}.${fileExt}`;
       const filePath = `/sfida-cime/${guildId}/${fileName}`;
 
-      MobileDebugger.log('📂 PERCORSO GENERATO', { fileName, filePath });
+      console.log('📂 Percorso generato:', { fileName, filePath });
 
       // Converti file in ArrayBuffer
       const arrayBuffer = await file.arrayBuffer();
-      MobileDebugger.log('🔄 CONVERSIONE COMPLETATA', { 
-        arrayBufferSize: arrayBuffer.byteLength,
-        originalSize: file.size,
-        match: arrayBuffer.byteLength === file.size
-      });
+      console.log('🔄 File convertito in ArrayBuffer:', arrayBuffer.byteLength, 'bytes');
 
       // STRATEGIA DIFFERENZIATA PC vs MOBILE
       let uploadResult;
       
+      const environment = this.analyzeEnvironment();
       if (environment.isMobile) {
-        MobileDebugger.log('📱 STRATEGIA MOBILE ATTIVATA');
+        console.log('📱 Strategia mobile attivata');
         uploadResult = await this.mobileUploadStrategy(arrayBuffer, filePath, file);
       } else {
-        MobileDebugger.log('💻 STRATEGIA PC ATTIVATA');
+        console.log('💻 Strategia PC attivata');
         uploadResult = await this.pcUploadStrategy(arrayBuffer, filePath);
       }
 
@@ -154,18 +105,14 @@ export class DropboxService {
       }
 
       // Crea link condiviso
-      MobileDebugger.log('🔗 CREAZIONE LINK CONDIVISO...');
+      console.log('🔗 Creazione link condiviso...');
       const sharedLink = await this.createSharedLink(uploadResult.path_lower);
       
-      MobileDebugger.log('✅ 🎉 UPLOAD COMPLETATO!', {
-        fileName: uploadResult.name,
-        size: uploadResult.size,
-        linkPreview: sharedLink.substring(0, 50) + '...'
-      });
+      console.log('✅ Upload completato con successo!');
 
       return sharedLink;
     } catch (error) {
-      MobileDebugger.log('❌ ERRORE UPLOAD', error);
+      console.error('❌ Errore upload:', error);
       throw new Error(error instanceof Error ? error.message : 'Errore upload sconosciuto');
     }
   }
@@ -231,7 +178,7 @@ export class DropboxService {
   // Strategia upload per PC (funzionante)
   private static async pcUploadStrategy(arrayBuffer: ArrayBuffer, filePath: string) {
     try {
-      MobileDebugger.log('💻 PC: Upload diretto con SDK Dropbox');
+      console.log('💻 PC: Upload diretto con SDK Dropbox');
       
       const result = await this.dbx!.filesUpload({
         path: filePath,
@@ -241,26 +188,22 @@ export class DropboxService {
         mute: false
       });
 
-      MobileDebugger.log('✅ PC: Upload SDK riuscito', {
-        name: result.result.name,
-        size: result.result.size,
-        path: result.result.path_lower
-      });
+      console.log('✅ PC: Upload SDK riuscito');
 
       return result.result;
     } catch (error) {
-      MobileDebugger.log('❌ PC: Errore upload SDK', error);
+      console.error('❌ PC: Errore upload SDK', error);
       throw error;
     }
   }
 
   // Strategia upload per Mobile (da ottimizzare)
   private static async mobileUploadStrategy(arrayBuffer: ArrayBuffer, filePath: string, originalFile: File) {
-    MobileDebugger.log('📱 MOBILE: Tentativo strategie multiple');
+    console.log('📱 Mobile: Tentativo strategie multiple');
     
     // Strategia 1: SDK Dropbox (come PC)
     try {
-      MobileDebugger.log('📱 Strategia 1: SDK Dropbox');
+      console.log('📱 Strategia 1: SDK Dropbox');
       const result = await this.dbx!.filesUpload({
         path: filePath,
         contents: arrayBuffer,
@@ -269,46 +212,46 @@ export class DropboxService {
         mute: false
       });
       
-      MobileDebugger.log('✅ MOBILE: SDK riuscito!', result.result);
+      console.log('✅ Mobile: SDK riuscito!');
       return result.result;
     } catch (sdkError) {
-      MobileDebugger.log('❌ MOBILE: SDK fallito', sdkError);
+      console.log('❌ Mobile: SDK fallito, provo fetch diretto');
     }
 
     // Strategia 2: Fetch diretto
     try {
-      MobileDebugger.log('📱 Strategia 2: Fetch diretto');
+      console.log('📱 Strategia 2: Fetch diretto');
       const fetchResult = await this.directFetchUpload(arrayBuffer, filePath);
       if (fetchResult) {
-        MobileDebugger.log('✅ MOBILE: Fetch riuscito!', fetchResult);
+        console.log('✅ Mobile: Fetch riuscito!');
         return fetchResult;
       }
     } catch (fetchError) {
-      MobileDebugger.log('❌ MOBILE: Fetch fallito', fetchError);
+      console.log('❌ Mobile: Fetch fallito, provo FormData');
     }
 
     // Strategia 3: FormData
     try {
-      MobileDebugger.log('📱 Strategia 3: FormData');
+      console.log('📱 Strategia 3: FormData');
       const formResult = await this.formDataUpload(originalFile, filePath);
       if (formResult) {
-        MobileDebugger.log('✅ MOBILE: FormData riuscito!', formResult);
+        console.log('✅ Mobile: FormData riuscito!');
         return formResult;
       }
     } catch (formError) {
-      MobileDebugger.log('❌ MOBILE: FormData fallito', formError);
+      console.log('❌ Mobile: FormData fallito, provo Base64');
     }
 
     // Strategia 4: Base64
     try {
-      MobileDebugger.log('📱 Strategia 4: Base64');
+      console.log('📱 Strategia 4: Base64');
       const base64Result = await this.base64Upload(originalFile, filePath);
       if (base64Result) {
-        MobileDebugger.log('✅ MOBILE: Base64 riuscito!', base64Result);
+        console.log('✅ Mobile: Base64 riuscito!');
         return base64Result;
       }
     } catch (base64Error) {
-      MobileDebugger.log('❌ MOBILE: Base64 fallito', base64Error);
+      console.error('❌ Mobile: Base64 fallito', base64Error);
     }
 
     throw new Error('Tutte le strategie mobile sono fallite');
@@ -432,11 +375,11 @@ export class DropboxService {
 
   // Crea link condiviso con gestione errori
   private static async createSharedLink(filePath: string): Promise<string> {
-    MobileDebugger.log('🔗 TENTATIVO CREAZIONE LINK', { filePath });
+    console.log('🔗 Tentativo creazione link per:', filePath);
     
     // Prima controlla se esiste già un link per questo file
     try {
-      MobileDebugger.log('🔗 Strategia 0: Cerca link esistenti');
+      console.log('🔗 Strategia 0: Cerca link esistenti');
       const existingLinks = await this.dbx!.sharingListSharedLinks({
         path: filePath,
         direct_only: true
@@ -444,29 +387,29 @@ export class DropboxService {
       
       if (existingLinks.result.links && existingLinks.result.links.length > 0) {
         const existingUrl = existingLinks.result.links[0].url.replace('?dl=0', '?raw=1');
-        MobileDebugger.log('✅ Link esistente trovato', { url: existingUrl.substring(0, 50) + '...' });
+        console.log('✅ Link esistente trovato');
         return existingUrl;
       }
-      MobileDebugger.log('ℹ️ Nessun link esistente trovato');
+      console.log('ℹ️ Nessun link esistente trovato');
     } catch (existingError) {
-      MobileDebugger.log('⚠️ Errore ricerca link esistenti', existingError);
+      console.log('⚠️ Errore ricerca link esistenti');
     }
 
     // Strategia 1: Link semplice (più compatibile)
     try {
-      MobileDebugger.log('🔗 Strategia 1: Link semplice');
+      console.log('🔗 Strategia 1: Link semplice');
       const simpleLinkResponse = await this.dbx!.sharingCreateSharedLink({
         path: filePath
       });
       const finalUrl = simpleLinkResponse.result.url.replace('?dl=0', '?raw=1');
-      MobileDebugger.log('✅ Link semplice creato', { url: finalUrl.substring(0, 50) + '...' });
+      console.log('✅ Link semplice creato');
       return finalUrl;
     } catch (simpleLinkError) {
-      MobileDebugger.log('❌ Link semplice fallito', simpleLinkError);
+      console.log('❌ Link semplice fallito, provo con settings');
       
       // Strategia 2: Link con settings (più specifico)
       try {
-        MobileDebugger.log('🔗 Strategia 2: Link con settings');
+        console.log('🔗 Strategia 2: Link con settings');
         const sharedLink = await this.dbx!.sharingCreateSharedLinkWithSettings({
           path: filePath,
           settings: {
@@ -476,16 +419,16 @@ export class DropboxService {
           }
         });
         const finalUrl = sharedLink.result.url.replace('?dl=0', '?raw=1');
-        MobileDebugger.log('✅ Link con settings creato', { url: finalUrl.substring(0, 50) + '...' });
+        console.log('✅ Link con settings creato');
         return finalUrl;
       } catch (linkError) {
-        MobileDebugger.log('❌ Link con settings fallito', linkError);
+        console.log('❌ Link con settings fallito');
       }
     }
 
     // Strategia 3: Prova con settings minimi
     try {
-      MobileDebugger.log('🔗 Strategia 3: Settings minimi');
+      console.log('🔗 Strategia 3: Settings minimi');
       const minimalLink = await this.dbx!.sharingCreateSharedLinkWithSettings({
         path: filePath,
         settings: {
@@ -493,15 +436,15 @@ export class DropboxService {
         }
       });
       const finalUrl = minimalLink.result.url.replace('?dl=0', '?raw=1');
-      MobileDebugger.log('✅ Link settings minimi creato', { url: finalUrl.substring(0, 50) + '...' });
+      console.log('✅ Link settings minimi creato');
       return finalUrl;
     } catch (minimalError) {
-      MobileDebugger.log('❌ Link settings minimi fallito', minimalError);
+      console.log('❌ Link settings minimi fallito');
     }
 
     // Strategia 4: Controlla di nuovo se il link è stato creato nel frattempo
     try {
-      MobileDebugger.log('🔗 Strategia 4: Ricontrolla link esistenti');
+      console.log('🔗 Strategia 4: Ricontrolla link esistenti');
       const recheckLinks = await this.dbx!.sharingListSharedLinks({
         path: filePath,
         direct_only: true
@@ -509,18 +452,18 @@ export class DropboxService {
       
       if (recheckLinks.result.links && recheckLinks.result.links.length > 0) {
         const existingUrl = recheckLinks.result.links[0].url.replace('?dl=0', '?raw=1');
-        MobileDebugger.log('✅ Link trovato al ricontrollo', { url: existingUrl.substring(0, 50) + '...' });
+       console.log('✅ Link trovato al ricontrollo');
         return existingUrl;
       }
     } catch (recheckError) {
-      MobileDebugger.log('❌ Ricontrollo fallito', recheckError);
+     console.log('❌ Ricontrollo fallito');
     }
 
     // Strategia 5: Prova con path diverso (senza caratteri speciali)
     try {
       const safePath = filePath.replace(/[^a-zA-Z0-9\/\-_.]/g, '_');
       if (safePath !== filePath) {
-        MobileDebugger.log('🔗 Strategia 5: Path sicuro', { originalPath: filePath, safePath });
+        console.log('🔗 Strategia 5: Path sicuro');
         try {
           // Prima rinomina il file
           await this.dbx!.filesMoveV2({
@@ -534,18 +477,18 @@ export class DropboxService {
             path: safePath
           });
           const finalUrl = safeLink.result.url.replace('?dl=0', '?raw=1');
-          MobileDebugger.log('✅ Link path sicuro creato', { url: finalUrl.substring(0, 50) + '...' });
+          console.log('✅ Link path sicuro creato');
           return finalUrl;
         } catch (safeError) {
-          MobileDebugger.log('❌ Path sicuro fallito', safeError);
+          console.log('❌ Path sicuro fallito');
         }
       }
     } catch (pathError) {
-      MobileDebugger.log('❌ Strategia path sicuro fallita', pathError);
+      console.log('❌ Strategia path sicuro fallita');
     }
 
     // Strategia finale: URL diretto costruito
-    MobileDebugger.log('🔗 Strategia finale: URL diretto costruito');
+    console.log('🔗 Strategia finale: URL diretto costruito');
     
     // Estrai informazioni dal path per costruire URL diretto
     const pathParts = filePath.split('/');
@@ -553,42 +496,32 @@ export class DropboxService {
     
     // Costruisci URL diretto basato sulla struttura Dropbox
     const directUrl = `https://dl.dropboxusercontent.com/s/auto${filePath}`;
-    MobileDebugger.log('⚠️ Usando URL diretto costruito', { 
-      originalPath: filePath,
-      fileName,
-      directUrl: directUrl.substring(0, 50) + '...'
-    });
+    console.log('⚠️ Usando URL diretto costruito');
     
     return directUrl;
   }
 
   // Verifica che il file sia un'immagine valida
   private static isValidImageFile(file: File): boolean {
-    MobileDebugger.log('🔍 VALIDAZIONE FILE MOBILE', { 
-      name: file.name || 'NO_NAME', 
-      type: file.type, 
-      size: file.size,
-      lastModified: new Date(file.lastModified).toISOString(),
-      constructor: file.constructor.name
-    });
+    console.log('🔍 Validazione file:', { name: file.name, type: file.type, size: file.size });
     
     // VALIDAZIONE ULTRA-PERMISSIVA PER MOBILE
     
     // 1. Verifica che il file abbia contenuto (priorità assoluta)
     if (file.size === 0) {
-      MobileDebugger.log('❌ File vuoto');
+      console.log('❌ File vuoto');
       return false;
     }
     
     // 2. Verifica dimensione minima ragionevole per un'immagine
     if (file.size < 50) {
-      MobileDebugger.log('❌ File troppo piccolo', { size: file.size });
+      console.log('❌ File troppo piccolo:', file.size);
       return false;
     }
     
     // 3. REGOLA MOBILE: Se ha dimensione > 1KB, è probabilmente un'immagine valida
     if (file.size >= 1000) {
-      MobileDebugger.log('✅ MOBILE: File >1KB - ACCETTATO AUTOMATICAMENTE');
+      console.log('✅ File >1KB - accettato automaticamente');
       return true;
     }
     
@@ -602,7 +535,7 @@ export class DropboxService {
     
     // 5. Se ha tipo MIME valido o è vuoto, accetta
     if (!file.type || validTypes.includes(file.type)) {
-      MobileDebugger.log('✅ MOBILE: Tipo MIME valido - ACCETTATO');
+      console.log('✅ Tipo MIME valido - accettato');
       return true;
     }
     
@@ -611,13 +544,13 @@ export class DropboxService {
     if (file.name && file.name.includes('.')) {
       const ext = file.name.split('.').pop()?.toLowerCase();
       if (ext && validExtensions.includes(ext)) {
-        MobileDebugger.log('✅ MOBILE: Estensione valida - ACCETTATO');
+        console.log('✅ Estensione valida - accettato');
         return true;
       }
     }
     
     // 7. FALLBACK FINALE: Se è arrivato qui e ha dimensione > 50 bytes, accetta comunque
-    MobileDebugger.log('✅ MOBILE: FALLBACK - ACCETTATO');
+    console.log('✅ Fallback - accettato');
     return true;
   }
 
