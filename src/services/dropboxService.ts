@@ -87,6 +87,8 @@ export class DropboxService {
       return true;
     } catch (error) {
       console.error('❌ Token Dropbox non valido:', error);
+    }
+  }
   static async uploadPhoto(file: File, guildId: string, challengeId: number): Promise<string> {
     MobileDebugger.clear();
     MobileDebugger.log('🚀 UPLOAD VIA SERVER BACKEND');
