@@ -47,10 +47,15 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
         lastModified: new Date(file.lastModified).toISOString()
       });
       
-      // Verifica che sia un'immagine
-      if (!file.type.startsWith('image/')) {
+      // Verifica che sia un'immagine (più permissiva per foto da telefono)
+      const isValidImage = file.type.startsWith('image/') || 
+                          file.type === 'application/octet-stream' || 
+                          file.type === '' || 
+                          isCamera;
+      
+      if (!isValidImage) {
         console.error('Tipo file non supportato:', file.type);
-        setError('Per favore seleziona un file immagine valido');
+        setError('Per favore seleziona un file immagine valido. Tipo rilevato: ' + (file.type || 'sconosciuto'));
         return;
       }
 
@@ -65,6 +70,13 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
       if (file.size === 0) {
         console.error('File vuoto');
         setError('Il file selezionato è vuoto o corrotto');
+        return;
+      }
+
+      // Verifica dimensione minima ragionevole per un'immagine
+      if (file.size < 100) {
+        console.error('File troppo piccolo per essere un\'immagine:', file.size);
+        setError('Il file sembra troppo piccolo per essere un\'immagine valida');
         return;
       }
 

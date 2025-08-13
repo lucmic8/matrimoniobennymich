@@ -24,9 +24,9 @@ export class PhotoService {
     try {
       console.log('=== INIZIO CARICAMENTO FOTO ===');
       console.log('File info:', { 
-        name: file.name || 'unnamed', 
+        name: file.name || 'FOTO_DA_TELEFONO', 
         size: file.size, 
-        type: file.type,
+        type: file.type || 'TIPO_NON_SPECIFICATO',
         lastModified: file.lastModified 
       });
       
@@ -36,13 +36,26 @@ export class PhotoService {
         throw new Error('File non valido o vuoto');
       }
 
-      // Verifica che sia un'immagine
-      if (!file.type.startsWith('image/')) {
+      // Verifica che sia un'immagine (più permissiva per foto da telefono)
+      const isValidImageType = file.type.startsWith('image/') || 
+                              file.type === 'application/octet-stream' || 
+                              file.type === '' ||
+                              file.size > 1000; // Se ha dimensione ragionevole, probabilmente è un'immagine
+      
+      if (!isValidImageType) {
         console.error('Tipo file non valido:', file.type);
-        throw new Error('Il file deve essere un\'immagine');
+        throw new Error('Il file deve essere un\'immagine. Tipo rilevato: ' + (file.type || 'sconosciuto'));
       }
 
-      // Verifica dimensione (max 50MB per compatibilità mobile)
+      // Verifica dimensione minima e massima
+      if (file.size < 100) {
+        throw new Error('Il file è troppo piccolo per essere un\'immagine valida');
+      }
+      
+      if (file.size > 50 * 1024 * 1024) {
+        throw new Error('Il file è troppo grande (max 50MB)');
+      }
+      
       // Assicurati che Dropbox sia sempre configurato
       if (!DropboxService.isConfigured()) {
         console.log('Dropbox non configurato, inizializzo automaticamente...');

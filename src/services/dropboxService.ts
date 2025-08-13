@@ -186,10 +186,13 @@ export class DropboxService {
 
   // Ottieni l'estensione del file in modo sicuro
   private static getFileExtension(file: File): string {
+    console.log('Determinazione estensione per:', { name: file.name, type: file.type });
+    
     // Prima prova con il nome del file
     if (file.name && file.name.includes('.')) {
       const ext = file.name.split('.').pop()?.toLowerCase();
       if (ext && ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+        console.log('Estensione da nome file:', ext);
         return ext;
       }
     }
@@ -200,32 +203,61 @@ export class DropboxService {
       'image/jpg': 'jpg',
       'image/png': 'png',
       'image/gif': 'gif',
-      'image/webp': 'webp'
+      'image/webp': 'webp',
+      'application/octet-stream': 'jpg', // Fallback per foto da telefono
+      '': 'jpg' // Fallback per file senza tipo MIME
     };
     
-    return mimeToExt[file.type] || 'jpg';
+    const extension = mimeToExt[file.type] || 'jpg';
+    console.log('Estensione determinata:', extension);
+    return extension;
   }
 
   // Verifica che il file sia un'immagine valida
   private static isValidImageFile(file: File): boolean {
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', ''];
     
-    // Controlla il tipo MIME
+    console.log('Validazione file:', { 
+      name: file.name || 'NO_NAME', 
+      type: file.type, 
+      size: file.size 
+    });
+    
+    // Controlla il tipo MIME (prioritario per foto da telefono)
     if (!validTypes.includes(file.type)) {
-      console.warn('Tipo MIME non valido:', file.type);
+      console.warn('Tipo MIME non standard:', file.type);
+      // Per foto da telefono, accetta anche se il tipo MIME è vuoto ma il file ha contenuto
+      if (!file.type && file.size > 0) {
+        console.log('File senza tipo MIME ma con contenuto - probabilmente foto da telefono');
+        return true;
+      }
+      // Accetta anche tipi MIME generici per compatibilità mobile
+      if (file.type === 'application/octet-stream' && file.size > 0) {
+        console.log('File con tipo generico - probabilmente foto da telefono');
+        return true;
+      }
       return false;
     }
     
-    // Controlla l'estensione se presente
+    // Controlla l'estensione se presente (opzionale per foto da telefono)
     if (file.name && file.name.includes('.')) {
       const ext = file.name.split('.').pop()?.toLowerCase();
       if (ext && !validExtensions.includes(ext)) {
         console.warn('Estensione non valida:', ext);
         return false;
       }
+    } else {
+      console.log('File senza nome/estensione - probabilmente foto da telefono');
     }
     
+    // Verifica che il file abbia contenuto
+    if (file.size === 0) {
+      console.error('File vuoto');
+      return false;
+    }
+    
+    console.log('✅ File validato con successo');
     return true;
   }
 
