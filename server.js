@@ -33,7 +33,7 @@ app.post('/api/upload-dropbox', async (req, res) => {
     if (req.fileUploadError && req.fileUploadError.code === 'LIMIT_FILE_SIZE') {
       console.log('❌ File troppo grande');
       return res.status(413).json({ 
-        success: false, 
+        success: false,
         error: 'File troppo grande (max 50MB)' 
       });
     }
@@ -88,108 +88,130 @@ app.post('/api/upload-dropbox', async (req, res) => {
       ok: uploadResponse.ok
     });
 
+    // Leggi sempre come testo per evitare errori JSON
     const uploadText = await uploadResponse.text();
     console.log('📄 Corpo risposta upload:', uploadText.substring(0, 200));
 
+    // Prova a parsare JSON, altrimenti usa testo grezzo
+    let uploadResult;
+    try {
+      uploadResult = JSON.parse(uploadText);
+    } catch (e) {
+      console.log('⚠️ Risposta Dropbox non è JSON, uso testo grezzo');
+      uploadResult = { raw: uploadText };
+    }
+
+    // Se upload non è riuscito, restituisci errore ma sempre in formato JSON
     if (!uploadResponse.ok) {
       console.log('❌ Errore upload Dropbox');
-      let errorData = { error_summary: uploadText };
-      try {
-        if (uploadText.trim()) {
-          errorData = JSON.parse(uploadText);
-        }
-      } catch (e) {
-        console.log('⚠️ Risposta Dropbox non è JSON valido:', e.message);
-        errorData = { error_summary: uploadText || 'Risposta vuota da Dropbox' };
-      }
-      
-      return res.status(500).json({ 
-        success: false, 
+      return res.status(uploadResponse.status).json({
+        success: false,
         error: 'Errore Dropbox upload',
-        details: errorData,
+        result: uploadResult,
         status: uploadResponse.status
       });
     }
 
-    let uploadResult;
-    try {
-      if (!uploadText.trim()) {
-        throw new Error('Risposta vuota da Dropbox');
-      }
-      uploadResult = JSON.parse(uploadText);
-    } catch (e) {
-      console.log('❌ Errore parsing JSON risposta upload:', e.message);
-      return res.status(500).json({ success: false, error: 'Risposta non valida da Dropbox' });
-    }
-    console.log('✅ Upload completato:', uploadResult.name);
+    console.log('✅ Upload completato:', uploadResult.name || 'file caricato');
 
-    // Crea link condiviso
-    console.log('🔗 Creazione link condiviso...');
-    const linkResponse = await fetch('https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${DROPBOX_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        path: uploadResult.path_lower,
-        settings: {
-          requested_visibility: 'public'
-        }
-      })
-    });
-
-    console.log('📊 Risposta link:', {
-      status: linkResponse.status,
-      ok: linkResponse.ok
-    });
-
-    let sharedLink;
-    if (linkResponse.ok) {
-      const linkResult = await linkResponse.json();
-      sharedLink = linkResult.url.replace('?dl=0', '?raw=1');
-      console.log('✅ Link condiviso creato');
-    } else {
-      // Fallback: prova link semplice
-      console.log('⚠️ Tentativo link semplice...');
-      const simpleLinkResponse = await fetch('https://api.dropboxapi.com/2/sharing/create_shared_link', {
+    // Solo se upload è riuscito, prova a creare link condiviso
+    if (uploadResult.path_lower) {
+      console.log('🔗 Creazione link condiviso...');
+      const linkResponse = await fetch('https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${DROPBOX_TOKEN}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          path: uploadResult.path_lower
+          path: uploadResult.path_lower,
+          settings: {
+            requested_visibility: 'public'
+          }
         })
       });
 
-      if (simpleLinkResponse.ok) {
-        const simpleLinkResult = await simpleLinkResponse.json();
-        sharedLink = simpleLinkResult.url.replace('?dl=0', '?raw=1');
-        console.log('✅ Link semplice creato');
+      const linkText = await linkResponse.text();
+      let linkResult;
+      try {
+        linkResult = JSON.parse(linkText);
+      } catch (e) {
+        linkResult = { raw: linkText };
+      }
+
+      if (linkResponse.ok && linkResult.url) {
+        const sharedLink = linkResult.url.replace('?dl=0', '?raw=1');
+        console.log('✅ Link condiviso creato');
+        
+        return res.status(200).json({ 
+          success: true, 
+          photoUrl: sharedLink,
+          fileName: uploadResult.name || fileName,
+          size: uploadResult.size || file.size,
+          result: uploadResult
+        });
       } else {
-        console.log('❌ Errore creazione link');
-        return res.status(500).json({ 
-          success: false, 
-          error: 'Impossibile creare link condiviso' 
+        // Fallback: prova link semplice
+        console.log('⚠️ Tentativo link semplice...');
+        const simpleLinkResponse = await fetch('https://api.dropboxapi.com/2/sharing/create_shared_link', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${DROPBOX_TOKEN}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            path: uploadResult.path_lower
+          })
+        });
+
+        const simpleLinkText = await simpleLinkResponse.text();
+        let simpleLinkResult;
+        try {
+          simpleLinkResult = JSON.parse(simpleLinkText);
+        } catch (e) {
+          simpleLinkResult = { raw: simpleLinkText };
+        }
+
+        if (simpleLinkResponse.ok && simpleLinkResult.url) {
+          const sharedLink = simpleLinkResult.url.replace('?dl=0', '?raw=1');
+          console.log('✅ Link semplice creato');
+          
+          return res.status(200).json({ 
+            success: true, 
+            photoUrl: sharedLink,
+            fileName: uploadResult.name || fileName,
+            size: uploadResult.size || file.size,
+            result: uploadResult
+          });
+        } else {
+          console.log('❌ Errore creazione link');
+          return res.status(500).json({ 
+            success: false, 
+            error: 'Impossibile creare link condiviso',
+            result: { upload: uploadResult, link: simpleLinkResult }
+          });
+        }
         });
       }
+    } else {
+      // Upload riuscito ma senza path_lower (caso anomalo)
+      console.log('⚠️ Upload riuscito ma senza path per link');
+      return res.status(200).json({
+        success: true,
+        photoUrl: null,
+        fileName: fileName,
+        size: file.size,
+        result: uploadResult,
+        warning: 'File caricato ma link non disponibile'
+      });
     }
-
-    console.log('🎉 Upload completato con successo!');
-    res.json({ 
-      success: true, 
-      photoUrl: sharedLink,
-      fileName: uploadResult.name,
-      size: uploadResult.size
-    });
 
   } catch (error) {
     console.error('❌ Errore server:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
-      error: error.message,
-      stack: error.stack
+      error: error.message || 'Errore sconosciuto',
+      details: error.stack
     });
   }
 });

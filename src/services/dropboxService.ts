@@ -120,18 +120,36 @@ export class DropboxService {
         body: formData
       });
 
+      // Leggi sempre come testo per evitare errori JSON
+      const responseText = await response.text();
       MobileDebugger.log('📊 Risposta server', {
         status: response.status,
         statusText: response.statusText,
-        ok: response.ok
+        ok: response.ok,
+        textLength: responseText.length
       });
 
-      const result = await response.json();
-      MobileDebugger.log('📄 Risultato completo', result);
+      // Prova a parsare JSON, altrimenti usa testo grezzo
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (e) {
+        MobileDebugger.log('⚠️ Risposta non JSON, uso testo grezzo');
+        result = { raw: responseText, parseError: e.message };
+      }
+      
+      MobileDebugger.log('📄 Risultato parsato', result);
 
-      if (!response.ok || !result.success) {
+      // Controlla se la richiesta è fallita
+      if (!response.ok || (result.success === false)) {
         MobileDebugger.log('❌ Errore dal server', result);
-        throw new Error(result.error || 'Errore server sconosciuto');
+        throw new Error(result.error || result.raw || 'Errore server sconosciuto');
+      }
+
+      // Controlla se abbiamo un URL della foto
+      if (!result.photoUrl) {
+        MobileDebugger.log('⚠️ Upload riuscito ma senza URL foto', result);
+        throw new Error('Upload completato ma URL foto non disponibile');
       }
 
       MobileDebugger.log('✅ 🎉 UPLOAD COMPLETATO VIA SERVER!', {
