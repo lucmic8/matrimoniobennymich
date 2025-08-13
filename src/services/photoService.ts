@@ -22,50 +22,72 @@ export class PhotoService {
   // Carica una foto con gestione migliorata per fotocamera
   static async uploadPhoto(file: File, guildId: string, challengeId: number): Promise<string> {
     try {
-      console.log('Inizio caricamento foto:', { fileName: file.name, size: file.size, type: file.type });
+      console.log('=== INIZIO CARICAMENTO FOTO ===');
+      console.log('File info:', { 
+        name: file.name || 'unnamed', 
+        size: file.size, 
+        type: file.type,
+        lastModified: file.lastModified 
+      });
       
       // Verifica che il file sia valido
       if (!file || file.size === 0) {
+        console.error('File non valido:', { file, size: file?.size });
         throw new Error('File non valido o vuoto');
       }
 
       // Verifica che sia un'immagine
       if (!file.type.startsWith('image/')) {
+        console.error('Tipo file non valido:', file.type);
         throw new Error('Il file deve essere un\'immagine');
       }
 
       // Verifica dimensione (max 50MB per compatibilità mobile)
-      if (file.size > 50 * 1024 * 1024) {
-        throw new Error('Il file è troppo grande. Dimensione massima: 50MB');
-      }
-
       // Assicurati che Dropbox sia sempre configurato
       if (!DropboxService.isConfigured()) {
         console.log('Dropbox non configurato, inizializzo automaticamente...');
         if (!DropboxService.initializeWithDefaultToken()) {
+          console.error('Impossibile inizializzare Dropbox automaticamente');
           throw new Error('Impossibile configurare Dropbox automaticamente');
         }
+        console.log('Dropbox inizializzato con successo');
       }
 
       // Carica sempre su Dropbox
       let photoUrl: string;
       try {
-        console.log('Caricamento su Dropbox...');
+        console.log('=== CARICAMENTO SU DROPBOX ===');
         photoUrl = await DropboxService.uploadPhoto(file, guildId, challengeId);
-        console.log('Caricamento Dropbox completato:', photoUrl);
+        console.log('✅ Caricamento Dropbox completato:', photoUrl);
       } catch (error) {
-        console.error('Errore Dropbox:', error);
-        throw new Error('Impossibile caricare la foto su Dropbox: ' + (error instanceof Error ? error.message : 'Errore sconosciuto'));
+        console.error('❌ Errore Dropbox dettagliato:', error);
+        console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack');
+        
+        // Messaggio di errore più specifico
+        let errorMessage = 'Impossibile caricare la foto su Dropbox';
+        if (error instanceof Error) {
+          if (error.message.includes('token')) {
+            errorMessage += ': Token di accesso non valido';
+          } else if (error.message.includes('network') || error.message.includes('fetch')) {
+            errorMessage += ': Problema di connessione internet';
+          } else if (error.message.includes('file') || error.message.includes('image')) {
+            errorMessage += ': File immagine non valido';
+          } else {
+            errorMessage += ': ' + error.message;
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       // Salva i metadati localmente e sincronizza
+      console.log('=== SALVATAGGIO METADATI ===');
       await this.savePhotoMetadata(guildId, challengeId, photoUrl);
       await this.syncDataToDropbox(guildId);
       
-      console.log('Caricamento completato con successo');
+      console.log('✅ CARICAMENTO COMPLETATO CON SUCCESSO');
       return photoUrl;
     } catch (error) {
-      console.error('Errore nel caricamento della foto:', error);
+      console.error('❌ ERRORE FINALE nel caricamento della foto:', error);
       throw new Error(error instanceof Error ? error.message : 'Impossibile caricare la foto');
     }
   }
