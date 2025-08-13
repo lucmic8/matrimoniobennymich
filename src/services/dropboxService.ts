@@ -432,23 +432,58 @@ export class DropboxService {
 
   // Crea link condiviso con gestione errori
   private static async createSharedLink(filePath: string): Promise<string> {
+    MobileDebugger.log('🔗 TENTATIVO CREAZIONE LINK', { filePath });
+    
     try {
+      MobileDebugger.log('🔗 Strategia 1: Link con settings');
       const sharedLink = await this.dbx!.sharingCreateSharedLinkWithSettings({
         path: filePath,
         settings: {
-          requested_visibility: 'public'
+          requested_visibility: 'public',
+          audience: 'public',
+          access: 'viewer'
         }
       });
-      return sharedLink.result.url.replace('?dl=0', '?raw=1');
+      const finalUrl = sharedLink.result.url.replace('?dl=0', '?raw=1');
+      MobileDebugger.log('✅ Link con settings creato', { url: finalUrl.substring(0, 50) + '...' });
+      return finalUrl;
     } catch (linkError) {
-      // Fallback link semplice
+      MobileDebugger.log('❌ Link con settings fallito', linkError);
+      
+      // Strategia 2: Link semplice
       try {
+        MobileDebugger.log('🔗 Strategia 2: Link semplice');
         const simpleLinkResponse = await this.dbx!.sharingCreateSharedLink({
           path: filePath
         });
-        return simpleLinkResponse.result.url.replace('?dl=0', '?raw=1');
+        const finalUrl = simpleLinkResponse.result.url.replace('?dl=0', '?raw=1');
+        MobileDebugger.log('✅ Link semplice creato', { url: finalUrl.substring(0, 50) + '...' });
+        return finalUrl;
       } catch (simpleLinkError) {
-        throw new Error('Impossibile creare link condiviso');
+        MobileDebugger.log('❌ Link semplice fallito', simpleLinkError);
+        
+        // Strategia 3: Controlla se il link esiste già
+        try {
+          MobileDebugger.log('🔗 Strategia 3: Cerca link esistente');
+          const existingLinks = await this.dbx!.sharingListSharedLinks({
+            path: filePath,
+            direct_only: true
+          });
+          
+          if (existingLinks.result.links && existingLinks.result.links.length > 0) {
+            const existingUrl = existingLinks.result.links[0].url.replace('?dl=0', '?raw=1');
+            MobileDebugger.log('✅ Link esistente trovato', { url: existingUrl.substring(0, 50) + '...' });
+            return existingUrl;
+          }
+        } catch (existingError) {
+          MobileDebugger.log('❌ Ricerca link esistente fallita', existingError);
+        }
+        
+        // Strategia 4: URL diretto (fallback finale)
+        MobileDebugger.log('🔗 Strategia 4: URL diretto (fallback)');
+        const directUrl = `https://www.dropbox.com/s/direct${filePath}?raw=1`;
+        MobileDebugger.log('⚠️ Usando URL diretto', { url: directUrl });
+        return directUrl;
       }
     }
   }

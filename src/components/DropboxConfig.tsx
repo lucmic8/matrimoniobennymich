@@ -145,13 +145,26 @@ function DropboxConfig({ onClose, onConfigured }: DropboxConfigProps) {
                       <li>Vai su <a href={generateDropboxAppUrl()} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Dropbox Developers</a></li>
                       <li><strong>Crea una nuova app</strong> (scegli "Scoped access" e "Full Dropbox")</li>
                       <li>Vai nella sezione "Settings" della tua app</li>
-                      <li><strong>IMPORTANTE:</strong> Nella sezione "Permissions" abilita: <code>files.content.write</code> e <code>sharing.write</code></li>
+                      <li><strong>CRITICO:</strong> Nella sezione "Permissions" abilita:</li>
+                      <li className="ml-4">
+                        <div className="bg-red-50 border border-red-200 rounded p-2 mt-1">
+                          <div className="text-xs font-mono space-y-1">
+                            <div>✅ <code>files.content.write</code></div>
+                            <div>✅ <code>sharing.write</code></div>
+                            <div>✅ <code>sharing.read</code></div>
+                            <div>✅ <code>files.content.read</code></div>
+                          </div>
+                        </div>
+                      </li>
                       <li>Scorri fino a "Generated access token"</li>
                       <li>Clicca "Generate" per creare il token</li>
                       <li>Copia il token e incollalo qui sotto</li>
                     </ol>
-                    <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
-                      <strong>⚠️ Nota:</strong> Senza i permessi corretti (<code>files.content.write</code> e <code>sharing.write</code>) il caricamento delle foto fallirà!
+                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs">
+                      <strong>🚨 ATTENZIONE:</strong> Senza TUTTI i permessi sopra elencati, il caricamento e la condivisione delle foto falliranno!
+                    </div>
+                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                      <strong>💡 Suggerimento:</strong> Dopo aver aggiunto i permessi, clicca "Submit" nella pagina Dropbox e rigenera il token!
                     </div>
                   </div>
                 </div>
