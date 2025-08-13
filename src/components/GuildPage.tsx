@@ -40,10 +40,17 @@ function GuildPage() {
   // Carica i dati da Supabase al mount del componente
   useEffect(() => {
     loadGuildData();
-    checkDropboxConfig();
+    autoConfigureDropbox();
   }, [guildId]);
 
-  const checkDropboxConfig = () => {
+  const autoConfigureDropbox = () => {
+    // Prova prima l'inizializzazione automatica
+    if (DropboxService.initializeWithDefaultToken()) {
+      setDropboxConfigured(true);
+      return;
+    }
+    
+    // Fallback al token salvato localmente
     const savedToken = localStorage.getItem('dropbox_access_token');
     if (savedToken) {
       DropboxService.initialize(savedToken);

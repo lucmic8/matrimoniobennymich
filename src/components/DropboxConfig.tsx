@@ -15,13 +15,20 @@ function DropboxConfig({ onClose, onConfigured }: DropboxConfigProps) {
   const [accountInfo, setAccountInfo] = useState<any>(null);
 
   useEffect(() => {
-    // Controlla se Dropbox è già configurato
+    // Prova prima l'inizializzazione automatica
+    if (DropboxService.initializeWithDefaultToken()) {
+      setIsConnected(true);
+      loadAccountInfo();
+      return;
+    }
+    
+    // Controlla se Dropbox è già configurato con token salvato
     const savedToken = localStorage.getItem('dropbox_access_token');
     if (savedToken) {
       DropboxService.initialize(savedToken);
       if (DropboxService.isConfigured()) {
         setIsConnected(true);
-        setAccessToken(savedToken);
+        setAccessToken('***configurato***');
         loadAccountInfo();
       }
     }

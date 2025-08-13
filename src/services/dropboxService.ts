@@ -3,6 +3,10 @@ import { Dropbox } from 'dropbox';
 export class DropboxService {
   private static dbx: Dropbox | null = null;
   private static accessToken: string | null = null;
+  
+  // Token di accesso per l'account lmiciletto@gmail.com
+  // IMPORTANTE: Sostituire con il token reale dall'app Dropbox
+  private static readonly DEFAULT_ACCESS_TOKEN = 'YOUR_DROPBOX_ACCESS_TOKEN_HERE';
 
   // Inizializza Dropbox con il token di accesso
   static initialize(accessToken: string) {
@@ -11,6 +15,15 @@ export class DropboxService {
       accessToken: accessToken,
       fetch: fetch
     });
+  }
+
+  // Inizializzazione automatica con token predefinito
+  static initializeWithDefaultToken() {
+    if (this.DEFAULT_ACCESS_TOKEN !== 'YOUR_DROPBOX_ACCESS_TOKEN_HERE') {
+      this.initialize(this.DEFAULT_ACCESS_TOKEN);
+      return true;
+    }
+    return false;
   }
 
   // Verifica se Dropbox è configurato
