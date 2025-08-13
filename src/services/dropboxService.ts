@@ -87,44 +87,9 @@ export class DropboxService {
       return true;
     } catch (error) {
       console.error('❌ Token Dropbox non valido:', error);
-      // Reset se il token non funziona
-      this.dbx = null;
-      this.accessToken = null;
-      return false;
-    }
-  }
-
-  // Inizializzazione sicura con fallback
-  static initializeWithFallback() {
-    try {
-      if (!this.DEFAULT_ACCESS_TOKEN || this.DEFAULT_ACCESS_TOKEN.length < 50) {
-        console.error('❌ Token Dropbox predefinito non configurato');
-        return false;
-      }
-      this.initialize(this.DEFAULT_ACCESS_TOKEN);
-      console.log('✅ Dropbox inizializzato con fallback');
-      return true;
-    } catch (error) {
-      console.warn('Dropbox non disponibile, uso fallback locale:', error);
-      return false;
-    }
-  }
-
-  // Verifica se Dropbox è configurato
-  static isConfigured(): boolean {
-    return this.dbx !== null && this.accessToken !== null;
-  }
-
-  // Carica una foto su Dropbox
   static async uploadPhoto(file: File, guildId: string, challengeId: number): Promise<string> {
     MobileDebugger.clear();
-    MobileDebugger.log('🚀 INIZIO UPLOAD DROPBOX');
-    MobileDebugger.log('🌐 Test CORS e connettività...');
-    
-    // Test CORS prima dell'upload
-    const corsTest = await this.testCORS();
-    MobileDebugger.log('🔍 Risultato test CORS', corsTest);
-    
+    MobileDebugger.log('🚀 UPLOAD VIA SERVER BACKEND');
     MobileDebugger.log('📁 File info', {
       name: file.name || 'NO_NAME',
       size: file.size,
@@ -133,159 +98,45 @@ export class DropboxService {
       sizeMB: (file.size / 1024 / 1024).toFixed(2) + ' MB'
     });
 
-    // Verifica e inizializza Dropbox se necessario
-    if (!this.isConfigured()) {
-      MobileDebugger.log('⚙️ Dropbox non configurato, inizializzazione...');
-      const initialized = await this.initializeWithDefaultToken();
-      if (!initialized) {
-        MobileDebugger.log('❌ ERRORE: Impossibile inizializzare Dropbox');
-        throw new Error('❌ DROPBOX NON CONFIGURATO\n\nDevi configurare il tuo token Dropbox personale:\n1. Vai su https://www.dropbox.com/developers/apps\n2. Crea una nuova app\n3. Genera un token di accesso\n4. Inseriscilo nelle impostazioni del sito');
-      }
-    }
-
     try {
-      const fileExt = this.getFileExtension(file);
-      const fileName = `${guildId}_challenge_${challengeId}_${Date.now()}.${fileExt}`;
-      const filePath = `/sfida-cime/${guildId}/${fileName}`;
+      // Crea FormData per inviare al server
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('guildId', guildId);
+      formData.append('challengeId', challengeId.toString());
+
+      MobileDebugger.log('📤 Invio al server backend...');
       
-      MobileDebugger.log('📂 Path generato', {
-        fileName,
-        filePath,
-        extension: fileExt
+      // Invia al nostro server Express
+      const response = await fetch('/api/upload-dropbox', {
+        method: 'POST',
+        body: formData
       });
 
-      // Converti il file in ArrayBuffer con gestione errori migliorata
-      let arrayBuffer: ArrayBuffer;
-      try {
-        MobileDebugger.log('🔄 Conversione in ArrayBuffer...');
-        arrayBuffer = await file.arrayBuffer();
-        MobileDebugger.log('✅ ArrayBuffer creato', {
-          byteLength: arrayBuffer.byteLength,
-          bytes: arrayBuffer.byteLength + ' bytes'
-        });
-      } catch (error) {
-        MobileDebugger.log('❌ ERRORE conversione ArrayBuffer', error);
-        throw new Error('Impossibile elaborare il file immagine');
-      }
-
-      if (arrayBuffer.byteLength === 0) {
-        MobileDebugger.log('❌ ERRORE: ArrayBuffer vuoto');
-        throw new Error('File vuoto o corrotto');
-      }
-
-      // Verifica che il file sia effettivamente un'immagine
-      if (!this.isValidImageFile(file)) {
-        MobileDebugger.log('❌ ERRORE: File non valido secondo isValidImageFile');
-        throw new Error('Il file selezionato non è un\'immagine valida');
-      }
-      MobileDebugger.log('✅ File validato come immagine');
-
-      // Carica il file su Dropbox
-      MobileDebugger.log('📤 Caricamento su Dropbox...', { path: filePath });
-      
-      // UPLOAD CON DEBUG COMPLETO
-      let response;
-      try {
-        MobileDebugger.log('📤 Tentativo upload con libreria Dropbox...');
-        response = await this.dbx.filesUpload({
-          path: filePath,
-          contents: arrayBuffer,
-          mode: 'add',
-          autorename: true,
-          strict_conflict: false
-        });
-        MobileDebugger.log('✅ Upload completato', {
-          name: response.result.name,
-          size: response.result.size,
-          path: response.result.path_lower
-        });
-      } catch (uploadError: any) {
-        MobileDebugger.log('❌ ERRORE UPLOAD DETTAGLIATO', {
-          message: uploadError.message,
-          status: uploadError.status || 'N/A',
-          error: uploadError.error || 'N/A',
-          response: uploadError.response || 'N/A',
-          stack: uploadError.stack?.substring(0, 200) || 'N/A'
-        });
-        
-        // Analizza se è un problema CORS
-        if (this.isCORSError(uploadError)) {
-          MobileDebugger.log('🚫 RILEVATO ERRORE CORS - Tentativo fallback...');
-          return await this.uploadWithFallback(file, arrayBuffer, filePath);
-        }
-        
-        // Se non è CORS, prova upload diretto per debug
-        MobileDebugger.log('🔄 Tentativo upload diretto con fetch...');
-        const directResult = await this.debugDirectUpload(arrayBuffer, filePath);
-        if (directResult) {
-          return directResult;
-        }
-        
-        throw uploadError;
-      }
-      
-      MobileDebugger.log('✅ Upload completato', {
-        name: response.result.name,
-        size: response.result.size,
-        path: response.result.path_lower
+      MobileDebugger.log('📊 Risposta server', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
       });
 
-      // Crea un link condiviso per il file con retry
-      let sharedLink;
-      try {
-        MobileDebugger.log('🔗 Creazione link condiviso...');
-        sharedLink = await this.dbx.sharingCreateSharedLinkWithSettings({
-          path: response.result.path_lower!,
-          settings: {
-            requested_visibility: 'public'
-          }
-        });
-        MobileDebugger.log('✅ Link condiviso creato', {
-          url: sharedLink.result.url.substring(0, 50) + '...'
-        });
-      } catch (linkError) {
-        MobileDebugger.log('⚠️ Errore link condiviso, provo metodo alternativo', linkError);
-        
-        // Fallback: prova con metodo semplice
-        try {
-          const simpleLinkResponse = await this.dbx.sharingCreateSharedLink({
-            path: response.result.path_lower!
-          });
-          sharedLink = simpleLinkResponse;
-          MobileDebugger.log('✅ Link semplice creato', {
-            url: sharedLink.result.url.substring(0, 50) + '...'
-          });
-        } catch (simpleLinkError) {
-          MobileDebugger.log('❌ ERRORE: Anche link semplice fallito', simpleLinkError);
-          throw new Error('Impossibile creare link condiviso per la foto');
-        }
+      const result = await response.json();
+      MobileDebugger.log('📄 Risultato completo', result);
+
+      if (!response.ok || !result.success) {
+        MobileDebugger.log('❌ Errore dal server', result);
+        throw new Error(result.error || 'Errore server sconosciuto');
       }
 
-      // Converti il link Dropbox in un link diretto per le immagini
-      const directLink = sharedLink.result.url.replace('?dl=0', '?raw=1');
-      MobileDebugger.log('✅ 🎉 UPLOAD COMPLETATO CON SUCCESSO!', {
-        directLink: directLink.substring(0, 50) + '...'
+      MobileDebugger.log('✅ 🎉 UPLOAD COMPLETATO VIA SERVER!', {
+        photoUrl: result.photoUrl?.substring(0, 50) + '...',
+        fileName: result.fileName,
+        size: result.size
       });
-      
-      return directLink;
+
+      return result.photoUrl;
     } catch (error) {
-      MobileDebugger.log('❌ ERRORE FINALE nel caricamento', error);
-      
-      // Errori specifici più utili
-      if (error instanceof Error) {
-        if (error.message.includes('invalid_access_token') || error.message.includes('expired_access_token')) {
-          MobileDebugger.log('❌ ERRORE: Token scaduto/invalido');
-          throw new Error('❌ TOKEN DROPBOX SCADUTO\n\nIl tuo token di accesso Dropbox è scaduto o non valido.\nDevi generarne uno nuovo su https://www.dropbox.com/developers/apps');
-        } else if (error.message.includes('insufficient_space')) {
-          MobileDebugger.log('❌ ERRORE: Spazio insufficiente');
-          throw new Error('❌ SPAZIO DROPBOX INSUFFICIENTE\n\nNon hai abbastanza spazio su Dropbox per caricare la foto.');
-        } else if (error.message.includes('rate_limit')) {
-          MobileDebugger.log('❌ ERRORE: Rate limit');
-          throw new Error('❌ TROPPI CARICAMENTI\n\nHai superato il limite di caricamenti Dropbox. Riprova tra qualche minuto.');
-        }
-      }
-      
-      throw new Error('❌ ERRORE CARICAMENTO DROPBOX\n\n' + (error instanceof Error ? error.message : 'Errore sconosciuto'));
+      MobileDebugger.log('❌ ERRORE UPLOAD SERVER', error);
+      throw new Error(error instanceof Error ? error.message : 'Errore caricamento server');
     }
   }
 
