@@ -140,15 +140,19 @@ function DropboxConfig({ onClose, onConfigured }: DropboxConfigProps) {
                 <div className="flex items-start">
                   <Info className="h-5 w-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
                   <div className="text-sm text-blue-800">
-                    <p className="font-semibold mb-2">Come ottenere il token di accesso:</p>
+                    <p className="font-semibold mb-2">🔑 Come ottenere il tuo token di accesso Dropbox:</p>
                     <ol className="list-decimal list-inside space-y-1 text-xs">
                       <li>Vai su <a href={generateDropboxAppUrl()} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Dropbox Developers</a></li>
-                      <li>Crea una nuova app (scegli "Scoped access" e "Full Dropbox")</li>
+                      <li><strong>Crea una nuova app</strong> (scegli "Scoped access" e "Full Dropbox")</li>
                       <li>Vai nella sezione "Settings" della tua app</li>
+                      <li><strong>IMPORTANTE:</strong> Nella sezione "Permissions" abilita: <code>files.content.write</code> e <code>sharing.write</code></li>
                       <li>Scorri fino a "Generated access token"</li>
                       <li>Clicca "Generate" per creare il token</li>
                       <li>Copia il token e incollalo qui sotto</li>
                     </ol>
+                    <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                      <strong>⚠️ Nota:</strong> Senza i permessi corretti (<code>files.content.write</code> e <code>sharing.write</code>) il caricamento delle foto fallirà!
+                    </div>
                   </div>
                 </div>
               </div>

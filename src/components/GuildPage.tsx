@@ -44,24 +44,18 @@ function GuildPage() {
 
   const autoConfigureDropbox = () => {
     try {
-      // Inizializza sempre Dropbox automaticamente
-      if (DropboxService.initializeWithDefaultToken()) {
+      // Prova inizializzazione automatica
+      const initialized = DropboxService.initializeWithDefaultToken();
+      if (initialized) {
         setDropboxConfigured(true);
-        console.log('Dropbox configurato automaticamente');
+        console.log('✅ Dropbox configurato automaticamente');
         return;
       }
       
-      // Fallback al token salvato localmente
-      const savedToken = localStorage.getItem('dropbox_access_token');
-      if (savedToken) {
-        DropboxService.initialize(savedToken);
-        setDropboxConfigured(DropboxService.isConfigured());
-      } else {
-        console.error('Impossibile configurare Dropbox automaticamente');
-        setDropboxConfigured(false);
-      }
+      console.warn('⚠️ Dropbox non configurato - serve token utente');
+      setDropboxConfigured(false);
     } catch (error) {
-      console.warn('Errore configurazione Dropbox:', error);
+      console.error('❌ Errore configurazione Dropbox:', error);
       setDropboxConfigured(false);
     }
   };
@@ -295,8 +289,8 @@ function GuildPage() {
               </div>
               <p className="text-sm text-amber-600 mt-1">
                 {dropboxConfigured 
-                  ? 'Tutte le foto vengono salvate automaticamente su Dropbox e sincronizzate tra dispositivi'
-                  : 'ATTENZIONE: Dropbox non configurato. Le foto potrebbero non sincronizzarsi tra dispositivi'
+                  ? '✅ Tutte le foto vengono salvate automaticamente su Dropbox e sincronizzate tra dispositivi'
+                  : '⚠️ ATTENZIONE: Dropbox non configurato. Devi inserire il tuo token di accesso per sincronizzare le foto tra dispositivi'
                 }
               </p>
             </div>

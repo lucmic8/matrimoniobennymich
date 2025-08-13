@@ -4,8 +4,9 @@ export class DropboxService {
   private static dbx: Dropbox | null = null;
   private static accessToken: string | null = null;
   
-  // Token di accesso Dropbox aggiornato
-  private static readonly DEFAULT_ACCESS_TOKEN = 'sl.u.AF6tfAApzv0qFDTuYAaNhOgjQjgn3mjvJKa6pqqfVtfqZj3HNEYufcSkghT_KMD8TrG1gGQ4arBD1sL-FX4E-dbAZfrN5G961rTiCxQjiqVj9f0ePIEp5lYfSw3XH-ylQflS9GLLBHcH0nwCjgyYnXf5TRZSOyTChIhRitlDWnlYuczuab3HDF343Mpob2ZucRW6GBAXKpFrBqRxJpUMcREZycWWFDSxjB2UVmPzHWKep5j5WNikxs-vuF17hif4cMzNP1zQJveE_EmyGuajX9diCb7p1cql0lfSiC-s97Mbc-Qrs4xB07cQUof6IzympOO0psTH6E6D0HE8tDHbHM2-GS_tDAuq6RMpPms8aW6IJfmLtVMDh5fb2Bl024OcP8dPoDdjGMBMYeOsp169g8uKpt6q6DmINN8dHQLrheKVZ0cRqYY7-IxW0pY1EaNvghKX-DYdTsK6ZF0y4qSov9HN-Ar76G5_oFmegffoT5AZG3iJsAk4qtn5dSxfNPWvMWH91E6dOXrgpeCTqhWMhf8ET5Pz0IRICaaWWcZfp4ejQQhWizbApzc7EtDZi-4AE5wcuQhE05HcO719U6gM73gSFwxv9gN4WXOlWekw3cVcLbgvdOxmNjZ7BxoruhgfWFpGv48dAByH1vQkzXc-aPzKoLYVVqB2P6_nadaECXDAuJOaOLD2TkCjWGqeouIqxj4oz5haTYJPn-lu5i_dBzMI51qqdrtqrx1MnQbRGKC2AKq-RoSIO6wUlXs2QVDXsCP3-idMjMyUaytCaeUcmvbhxFiltkkeQqH3-Jsj1BwMBaBZ1S5Ki3Xighjqx1YKo9s4qk_dw8_JdCs0dez7RiSYSY7yek9DkIZGgHSblOi8QuBXFUSZ4SKqvjPFBcFT7w4C1sKDW9-AMnhrpWnKcxi4OYtlALzN3K6FGkHbm82-1QElXS103hfujqWivdGomH_dF_DTwicFg5XVQLRQT9Ta0LJgcY0KkgfPgGTbQwiAAbKLMFxSOVWt3WffeFViXNk3MgfWuv-l6V_P50XIqM1O8S8emAN3vC940ga4d34SMD6t7q-8fR0exdzU8vYIiXlDhEUUfuM2Cwu_GoQk0AqN1z2lbKKyB6HltYvsTZGyY1dDXkO8-oSPt-pWr7xTFFl-qYNV5viKUj5w7g3Kp8fbjvnN0zgIvyreJ6bUHocFpHxtxuc0shmAisP2C6A1keJda0bNTroxxKsAsSS8fstHPzUjz4QgnEmKtfm2bwmFRZ-VvYCM7An1gYLQUZ-6DOqz6YRxBOZBFpDMKKa2qlFUSWTMjXXRy4IrTM-rTWviLx7fIaibfDUrr3i13rjo6bXb73tpvzTpGPuI8dBaUr3s_xbTa5ZBZ-BukqDlN5VZsZnQnVAzBgQwGdb_0e-7qWD2W_8LUKxpR1WROP637qpbSzHkdrrKuJ5re40eV5NMmQ';
+  // IMPORTANTE: Il token predefinito potrebbe essere scaduto
+  // Gli utenti devono configurare il proprio token Dropbox
+  private static readonly DEFAULT_ACCESS_TOKEN = '';
 
   // Inizializza Dropbox con il token di accesso
   static initialize(accessToken: string) {
@@ -19,16 +20,45 @@ export class DropboxService {
   // Inizializzazione automatica con token predefinito
   static initializeWithDefaultToken() {
     try {
+      // Prima prova con token salvato dall'utente
+      const savedToken = localStorage.getItem('dropbox_access_token');
+      if (savedToken && savedToken.length > 50) {
+        this.initialize(savedToken);
+        console.log('Dropbox inizializzato con token utente salvato');
+        return this.verifyConnection();
+      }
+      
+      // Fallback al token predefinito (se presente)
       if (this.DEFAULT_ACCESS_TOKEN && this.DEFAULT_ACCESS_TOKEN.length > 50) {
         this.initialize(this.DEFAULT_ACCESS_TOKEN);
-        console.log('Dropbox inizializzato automaticamente con token predefinito');
-        return true;
+        console.log('Dropbox inizializzato con token predefinito');
+        return this.verifyConnection();
       }
+      
+      console.warn('Nessun token Dropbox disponibile');
+      return false;
     } catch (error) {
       console.error('Errore inizializzazione automatica Dropbox:', error);
+      return false;
     }
-    console.error('Token predefinito non valido o mancante');
-    return false;
+  }
+
+  // Verifica la connessione Dropbox
+  private static async verifyConnection(): Promise<boolean> {
+    try {
+      if (!this.dbx) return false;
+      
+      // Test rapido per verificare che il token funzioni
+      await this.dbx.usersGetCurrentAccount();
+      console.log('✅ Connessione Dropbox verificata');
+      return true;
+    } catch (error) {
+      console.error('❌ Token Dropbox non valido:', error);
+      // Reset se il token non funziona
+      this.dbx = null;
+      this.accessToken = null;
+      return false;
+    }
   }
 
   // Inizializzazione sicura con fallback
@@ -49,10 +79,12 @@ export class DropboxService {
 
   // Carica una foto su Dropbox
   static async uploadPhoto(file: File, guildId: string, challengeId: number): Promise<string> {
-    if (!this.dbx) {
-      console.error('Dropbox non configurato, tentativo di inizializzazione...');
-      if (!this.initializeWithDefaultToken()) {
-        throw new Error('Dropbox non configurato. Impossibile inizializzare automaticamente.');
+    // Verifica e inizializza Dropbox se necessario
+    if (!this.isConfigured()) {
+      console.log('Dropbox non configurato, tentativo di inizializzazione...');
+      const initialized = await this.initializeWithDefaultToken();
+      if (!initialized) {
+        throw new Error('❌ DROPBOX NON CONFIGURATO\n\nDevi configurare il tuo token Dropbox personale:\n1. Vai su https://www.dropbox.com/developers/apps\n2. Crea una nuova app\n3. Genera un token di accesso\n4. Inseriscilo nelle impostazioni del sito');
       }
     }
 
@@ -100,16 +132,28 @@ export class DropboxService {
       // Crea un link condiviso per il file con retry
       let sharedLink;
       try {
+        console.log('Creazione link condiviso...');
         sharedLink = await this.dbx.sharingCreateSharedLinkWithSettings({
           path: response.result.path_lower!,
           settings: {
             requested_visibility: 'public'
           }
         });
+        console.log('Link condiviso creato:', sharedLink.result.url);
       } catch (linkError) {
         console.warn('Errore creazione link condiviso, tentativo con metodo alternativo:', linkError);
-        // Fallback: usa il path diretto
-        return `https://dl.dropboxusercontent.com/s/${response.result.id}/${fileName}`;
+        
+        // Fallback: prova con metodo semplice
+        try {
+          const simpleLinkResponse = await this.dbx.sharingCreateSharedLink({
+            path: response.result.path_lower!
+          });
+          sharedLink = simpleLinkResponse;
+          console.log('Link semplice creato:', sharedLink.result.url);
+        } catch (simpleLinkError) {
+          console.error('Anche il link semplice è fallito:', simpleLinkError);
+          throw new Error('Impossibile creare link condiviso per la foto');
+        }
       }
 
       // Converti il link Dropbox in un link diretto per le immagini
@@ -119,7 +163,19 @@ export class DropboxService {
       return directLink;
     } catch (error) {
       console.error('Errore nel caricamento su Dropbox:', error);
-      throw new Error('Impossibile caricare la foto su Dropbox');
+      
+      // Errori specifici più utili
+      if (error instanceof Error) {
+        if (error.message.includes('invalid_access_token') || error.message.includes('expired_access_token')) {
+          throw new Error('❌ TOKEN DROPBOX SCADUTO\n\nIl tuo token di accesso Dropbox è scaduto o non valido.\nDevi generarne uno nuovo su https://www.dropbox.com/developers/apps');
+        } else if (error.message.includes('insufficient_space')) {
+          throw new Error('❌ SPAZIO DROPBOX INSUFFICIENTE\n\nNon hai abbastanza spazio su Dropbox per caricare la foto.');
+        } else if (error.message.includes('rate_limit')) {
+          throw new Error('❌ TROPPI CARICAMENTI\n\nHai superato il limite di caricamenti Dropbox. Riprova tra qualche minuto.');
+        }
+      }
+      
+      throw new Error('❌ ERRORE CARICAMENTO DROPBOX\n\n' + (error instanceof Error ? error.message : 'Errore sconosciuto'));
     }
   }
 
