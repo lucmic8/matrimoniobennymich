@@ -93,11 +93,14 @@ app.post('/api/upload-dropbox', async (req, res) => {
 
     if (!uploadResponse.ok) {
       console.log('❌ Errore upload Dropbox');
-      let errorData;
+      let errorData = { error_summary: uploadText };
       try {
-        errorData = JSON.parse(uploadText);
+        if (uploadText.trim()) {
+          errorData = JSON.parse(uploadText);
+        }
       } catch (e) {
-        errorData = { error_summary: uploadText };
+        console.log('⚠️ Risposta Dropbox non è JSON valido:', e.message);
+        errorData = { error_summary: uploadText || 'Risposta vuota da Dropbox' };
       }
       
       return res.status(500).json({ 
@@ -108,7 +111,16 @@ app.post('/api/upload-dropbox', async (req, res) => {
       });
     }
 
-    const uploadResult = JSON.parse(uploadText);
+    let uploadResult;
+    try {
+      if (!uploadText.trim()) {
+        throw new Error('Risposta vuota da Dropbox');
+      }
+      uploadResult = JSON.parse(uploadText);
+    } catch (e) {
+      console.log('❌ Errore parsing JSON risposta upload:', e.message);
+      return res.status(500).json({ success: false, error: 'Risposta non valida da Dropbox' });
+    }
     console.log('✅ Upload completato:', uploadResult.name);
 
     // Crea link condiviso
