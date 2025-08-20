@@ -1,4 +1,5 @@
 import { DropboxService } from './dropboxService'
+import { SupabaseService } from './supabaseService'
 
 export interface ChallengePhoto {
   id: string
@@ -19,6 +20,11 @@ export interface GuildProgress {
 }
 
 export class PhotoService {
+  // Inizializza i servizi
+  static initialize() {
+    SupabaseService.initialize();
+  }
+
   // Carica una foto con gestione migliorata per fotocamera
   static async uploadPhoto(file: File, guildId: string, challengeId: number): Promise<string> {
     try {
@@ -90,7 +96,14 @@ export class PhotoService {
       // Salva i metadati localmente e sincronizza
       console.log('=== 💾 SALVATAGGIO METADATI ===');
       await this.savePhotoMetadata(guildId, challengeId, photoUrl);
-      await this.syncDataToDropbox(guildId);
+      
+      // Prova a salvare su Supabase
+      try {
+        await SupabaseService.savePhoto(guildId, challengeId, photoUrl);
+        console.log('✅ Foto salvata anche su Supabase');
+      } catch (supabaseError) {
+        console.warn('⚠️ Impossibile salvare su Supabase, continuo con storage locale');
+      }
       
       console.log('✅ 🎉 CARICAMENTO COMPLETATO CON SUCCESSO');
       return photoUrl;
@@ -152,6 +165,18 @@ export class PhotoService {
 
   // Ottieni tutte le foto di una gilda
   static async getGuildPhotos(guildId: string): Promise<ChallengePhoto[]> {
+    // Prima prova con Supabase
+    try {
+      const supabasePhotos = await SupabaseService.getGuildPhotos(guildId);
+      if (supabasePhotos.length > 0) {
+        console.log(`📸 Caricate ${supabasePhotos.length} foto da Supabase per ${guildId}`);
+        return supabasePhotos;
+      }
+    } catch (error) {
+      console.warn('⚠️ Errore caricamento da Supabase, uso storage locale');
+    }
+
+    // Fallback a storage locale
     const photos: ChallengePhoto[] = [];
     
     for (let i = 1; i <= 15; i++) {
@@ -175,6 +200,19 @@ export class PhotoService {
 
   // Ottieni una foto specifica
   static async getChallengePhoto(guildId: string, challengeId: number): Promise<ChallengePhoto | null> {
+    // Prima prova con Supabase
+    try {
+      const supabasePhotos = await SupabaseService.getGuildPhotos(guildId);
+      const photo = supabasePhotos.find(p => p.challenge_id === challengeId);
+      if (photo) {
+        console.log(`📸 Foto specifica trovata su Supabase per sfida ${challengeId}`);
+        return photo;
+      }
+    } catch (error) {
+      console.warn('⚠️ Errore caricamento da Supabase, uso storage locale');
+    }
+
+    // Fallback a storage locale
     const metadataKey = `metadata_${guildId}_${challengeId}`;
     const savedMetadata = localStorage.getItem(metadataKey);
     
@@ -195,6 +233,14 @@ export class PhotoService {
   // Elimina una foto
   static async deletePhoto(guildId: string, challengeId: number): Promise<void> {
     try {
+      // Elimina da Supabase
+      try {
+        await SupabaseService.deletePhoto(guildId, challengeId);
+        console.log('🗑️ Foto eliminata da Supabase');
+      } catch (supabaseError) {
+        console.warn('⚠️ Errore eliminazione da Supabase');
+      }
+
       // Assicurati che Dropbox sia configurato
       if (!DropboxService.isConfigured()) {
         DropboxService.initializeWithDefaultToken();
@@ -227,6 +273,15 @@ export class PhotoService {
 
   // Gestione del progresso delle sfide
   static async updateChallengeProgress(guildId: string, challengeId: number, completed: boolean): Promise<void> {
+    // Salva su Supabase
+    try {
+      await SupabaseService.saveProgress(guildId, challengeId, completed);
+      console.log('✅ Progresso salvato su Supabase');
+    } catch (supabaseError) {
+      console.warn('⚠️ Impossibile salvare progresso su Supabase, uso storage locale');
+    }
+
+    // Salva localmente
     const progressData = {
       id: `${guildId}_${challengeId}`,
       guild_id: guildId,
@@ -244,6 +299,18 @@ export class PhotoService {
 
   // Ottieni il progresso di una gilda
   static async getGuildProgress(guildId: string): Promise<GuildProgress[]> {
+    // Prima prova con Supabase
+    try {
+      const supabaseProgress = await SupabaseService.getGuildProgress(guildId);
+      if (supabaseProgress.length > 0) {
+        console.log(`📊 Caricato progresso da Supabase per ${guildId}:`, supabaseProgress.length);
+        return supabaseProgress;
+      }
+    } catch (error) {
+      console.warn('⚠️ Errore caricamento progresso da Supabase, uso storage locale');
+    }
+
+    // Fallback a storage locale
     const progress: GuildProgress[] = [];
     
     for (let i = 1; i <= 15; i++) {
@@ -265,4 +332,16 @@ export class PhotoService {
     return progress.sort((a, b) => a.challenge_id - b.challenge_id);
   }
 
+  // Test connessioni
+  static async testConnections(): Promise<{ supabase: boolean; dropbox: boolean }> {
+    const supabaseTest = await SupabaseService.testConnection();
+    const dropboxTest = DropboxService.isConfigured();
+    
+    console.log('🔍 Test connessioni:', { supabase: supabaseTest, dropbox: dropboxTest });
+    
+    return {
+      supabase: supabaseTest,
+      dropbox: dropboxTest
+    };
+  }
 }

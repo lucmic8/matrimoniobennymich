@@ -18,6 +18,7 @@ import { challenges } from '../data/challenges';
 import PhotoUpload from './PhotoUpload';
 import { PhotoService } from '../services/photoService';
 import { DropboxService } from '../services/dropboxService';
+import { SupabaseService } from '../services/supabaseService';
 import DropboxConfig from './DropboxConfig';
 
 function GuildPage() {
@@ -29,6 +30,8 @@ function GuildPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showDropboxConfig, setShowDropboxConfig] = useState(false);
   const [dropboxConfigured, setDropboxConfigured] = useState(false);
+  const [supabaseConfigured, setSupabaseConfigured] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<{ supabase: boolean; dropbox: boolean }>({ supabase: false, dropbox: false });
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -38,12 +41,26 @@ function GuildPage() {
   // Carica i dati al mount del componente
   useEffect(() => {
     const initializeData = async () => {
+      await checkConnections();
       await autoConfigureDropbox();
       await loadGuildData();
     };
     
     initializeData();
   }, [guildId]);
+
+  const checkConnections = async () => {
+    try {
+      const status = await PhotoService.testConnections();
+      setConnectionStatus(status);
+      setSupabaseConfigured(status.supabase);
+      setDropboxConfigured(status.dropbox);
+      
+      console.log('🔍 Status connessioni:', status);
+    } catch (error) {
+      console.error('Errore test connessioni:', error);
+    }
+  };
 
   const autoConfigureDropbox = () => {
     try {
@@ -252,24 +269,37 @@ function GuildPage() {
             {/* Dropbox Configuration Button */}
             <div className="mb-6">
               <div className="flex items-center justify-between">
-                <span className="text-amber-700 font-semibold">Storage delle Foto</span>
-                <button
-                  onClick={() => setShowDropboxConfig(true)}
-                  className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center text-sm font-medium shadow-md hover:shadow-lg ${
-                    dropboxConfigured
-                      ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white cursor-default'
-                      : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white'
-                  }`}
-                  disabled={dropboxConfigured}
-                >
-                  <Cloud className="h-4 w-4 mr-2" />
-                  {dropboxConfigured ? '✅ Dropbox Attivo' : 'Configura Dropbox'}
-                </button>
+                <span className="text-amber-700 font-semibold">Storage e Sincronizzazione</span>
+                <div className="flex gap-2">
+                  <div className={`px-3 py-1 rounded-lg text-xs font-medium ${
+                    supabaseConfigured 
+                      ? 'bg-green-100 text-green-800 border border-green-300'
+                      : 'bg-red-100 text-red-800 border border-red-300'
+                  }`}>
+                    {supabaseConfigured ? '✅ Supabase' : '❌ Supabase'}
+                  </div>
+                  <button
+                    onClick={() => setShowDropboxConfig(true)}
+                    className={`px-3 py-1 rounded-lg transition-all duration-200 flex items-center text-xs font-medium ${
+                      dropboxConfigured
+                        ? 'bg-green-100 text-green-800 border border-green-300 cursor-default'
+                        : 'bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200'
+                    }`}
+                    disabled={dropboxConfigured}
+                  >
+                    <Cloud className="h-3 w-3 mr-1" />
+                    {dropboxConfigured ? '✅ Dropbox' : '⚙️ Config'}
+                  </button>
+                </div>
               </div>
               <p className="text-sm text-amber-600 mt-1">
-                {dropboxConfigured 
-                  ? '✅ Tutte le foto vengono salvate automaticamente su Dropbox e sincronizzate tra dispositivi'
-                  : '⚠️ ATTENZIONE: Dropbox non configurato. Devi inserire il tuo token di accesso per sincronizzare le foto tra dispositivi'
+                {supabaseConfigured && dropboxConfigured
+                  ? '✅ Sincronizzazione completa attiva: Supabase (database) + Dropbox (storage)'
+                  : supabaseConfigured
+                  ? '✅ Database Supabase attivo. Dropbox opzionale per backup aggiuntivo'
+                  : dropboxConfigured
+                  ? '⚠️ Solo Dropbox attivo. Configurare Supabase per sincronizzazione completa'
+                  : '❌ Nessuna sincronizzazione attiva. Solo storage locale disponibile'
                 }
               </p>
             </div>
