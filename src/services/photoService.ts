@@ -60,32 +60,45 @@ export class PhotoService {
       }
       console.log('✅ Tutte le validazioni superate');
       
-      // Assicurati che Dropbox sia sempre configurato
-      if (!DropboxService.isConfigured()) {
-        console.log('🔧 Dropbox non configurato, inizializzo automaticamente...');
-        DropboxService.initializeWithDefaultToken();
-        console.log('✅ Tentativo inizializzazione Dropbox completato');
-      }
-
-      // Carica sempre su Dropbox
+      // Carica su Dropbox tramite backend
       let photoUrl: string;
       try {
-        console.log('=== 📤 CARICAMENTO SU DROPBOX ===');
-        photoUrl = await DropboxService.uploadPhoto(file, guildId, challengeId);
-        console.log('✅ Caricamento Dropbox completato:', photoUrl.substring(0, 100) + '...');
+        console.log('=== 📤 CARICAMENTO SU DROPBOX TRAMITE BACKEND ===');
+        
+        // Prepara FormData per l'upload
+        const formData = new FormData();
+        formData.append('photo', file);
+        formData.append('guildId', guildId);
+        formData.append('challengeId', challengeId.toString());
+        
+        // Invia al backend
+        const response = await fetch('/api/upload-dropbox', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Errore server: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        photoUrl = result.url;
+        
+        console.log('✅ Caricamento Dropbox tramite backend completato:', photoUrl.substring(0, 100) + '...');
       } catch (error) {
-        console.error('❌ Errore Dropbox dettagliato:', error);
+        console.error('❌ Errore caricamento tramite backend:', error);
         console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack');
         
         // Messaggio di errore più specifico
-        let errorMessage = 'Impossibile caricare la foto su Dropbox';
+        let errorMessage = 'Impossibile caricare la foto';
         if (error instanceof Error) {
-          if (error.message.includes('token')) {
-            errorMessage += ': Token di accesso non valido';
+          if (error.message.includes('server') || error.message.includes('500')) {
+            errorMessage += ': Errore del server';
           } else if (error.message.includes('network') || error.message.includes('fetch')) {
             errorMessage += ': Problema di connessione internet';
-          } else if (error.message.includes('file') || error.message.includes('image')) {
-            errorMessage += ': File immagine non valido';
+          } else if (error.message.includes('413')) {
+            errorMessage += ': File troppo grande per il server';
           } else {
             errorMessage += ': ' + error.message;
           }
@@ -241,18 +254,29 @@ export class PhotoService {
         console.warn('⚠️ Errore eliminazione da Supabase');
       }
 
-      // Assicurati che Dropbox sia configurato
-      if (!DropboxService.isConfigured()) {
-        DropboxService.initializeWithDefaultToken();
-      }
-
-      // Elimina da Dropbox
+      // Elimina da Dropbox tramite backend
       const photo = await this.getChallengePhoto(guildId, challengeId);
       if (photo && photo.photo_url.includes('dropbox')) {
         try {
-          await DropboxService.deletePhoto(photo.photo_url);
+          const response = await fetch('/api/delete-dropbox', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              photoUrl: photo.photo_url,
+              guildId,
+              challengeId
+            })
+          });
+          
+          if (response.ok) {
+            console.log('🗑️ Foto eliminata da Dropbox tramite backend');
+          } else {
+            console.warn('⚠️ Errore eliminazione Dropbox tramite backend');
+          }
         } catch (error) {
-          console.warn('Errore eliminazione Dropbox:', error);
+          console.warn('Errore eliminazione Dropbox tramite backend:', error);
         }
       }
 
@@ -335,7 +359,15 @@ export class PhotoService {
   // Test connessioni
   static async testConnections(): Promise<{ supabase: boolean; dropbox: boolean }> {
     const supabaseTest = await SupabaseService.testConnection();
-    const dropboxTest = DropboxService.isConfigured();
+    
+    // Test connessione Dropbox tramite backend
+    let dropboxTest = false;
+    try {
+      const response = await fetch('/api/test-dropbox');
+      dropboxTest = response.ok;
+    } catch (error) {
+      console.warn('Test Dropbox fallito:', error);
+    }
     
     console.log('🔍 Test connessioni:', { supabase: supabaseTest, dropbox: dropboxTest });
     
