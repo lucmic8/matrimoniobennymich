@@ -6,9 +6,6 @@ export class DropboxService {
   private static refreshToken: string | null = null;
   private static appKey: string | null = null;
   private static appSecret: string | null = null;
-  
-  // Token aggiornato
-  private static readonly DEFAULT_ACCESS_TOKEN = 'sl.u.AF5x1KLlnZT5XUU6lKpjJU3nQynsLYr-b60WCALUvGoOqlXtLNX_0M4xH7d0zzYFQDZXzbqSdjLe2Y-m7pJtvDOQJk5mMFmGgTJRD5z3DDaRbrI097w87UDkQ6ZlrDdvNIZRWzK4Kc0VYZhJ2G5RueIDdscR8S4pjgFHlgbvYwpQm6pYBttv1CiicHiz3KVCjbvplygbL6yqvldsKvq9FFnT9mnzZZqznUTdn8QixsijqKSQRqU2yzWLunfI6oldx76g2Kro9iU59SreOzZ3oYDwu3wtMFrFnEJmWNmW70JNg0CLNaJ2--r-TPodmlh7JCnKd57Bb1SioaeOFVoVyFbUW0N-XR6IzL64MfU0vSG3SxFs7qunPxwQ4V6Mo8Bk4RFmyjuFOCiE14oo4GcdwJHMsUwo-NZzY41cT86e8iUFWeLFzG0xqYsbaExweGbh4GJFOBFi_riG2Nj5T18QmEjUkwZs8h6KwbCg2L6e3G1qhSDaspXtQgIwjQ_JzHHZANNB_ui_BBhY1H_6Sn_MYikCQCPbOTzHj5V5BR5pWKHlWtM3OAzbaa8KRpefeadhppjiF7h55UW33ap_tVYu3ImoMFXLtGBvP_GKToBAjAQVBUv6j7g59Ram5GTbIDRRc1xCtD1Hx2w1w74nHltSoOyH71D4SvguMhv8KdrJceIpUWcxr9vaqGarS5PqjlU9d4ZgHGU9juZ7dSf9-C9YRsYe1ORcASZ03t4ARX2QR59l1kdezKbO12wAYLL1ebrf8ugui_sjSY1E6P20vS1Xm6IlsCL_imqh8vpNNyKNZQN6ybUcSJjJyWdMhdtmla6syuyw1tRGBqaYbPYPF9YggOWjyJTcJAtM3w60UoBg6KwzpO3RfINW3zgZLl_rTvuKUIW4W2ad7cH6IDm_qSiCHawuYSK3bFb1xmV2BA6FyZxWx6WsTYBN-4hXs76duqmWj4CgKXNplshXh2wUwSdWkMY3wKv4nxKSP07miPBXFPQaUGN6aSV4TxnCb5DmegTQAQIU3qL_59SCWaziK_9DaSlq_Zp_pxe9UXUMX_w8PMkoiOJl4cO_gFOl6dwnEnB-Df_rbLFj6eH5VcW74JJrFHUPEOy4m5yQHNwIGcqYdo2ROEVli6iV7cObR73KgJBuF7a5QkbmiElbnAkfu7s5lSAwLGJLfeWhDqltfbdOqlsv11rthsTPmwnVrWBTGwvCEMGZ1Ls2CkoBnltXrlFUfwobuPqY7NtrMsmME2GtjErhK483N9UNgF7XVMqVwGhIByf76QyEadxfWQb9_8K61gaCipRmNlPd0tPrTmvFp5bzpcD7UtFmLtNDcTXF5ja3szNvHo_WsiD1s-VtGD54WSVmP-z8n7YW44mczDrqCLpO01AO2IdCm3Ut0j0suWY1gfE0G-ZBqDojjaDladKCX25q88eKsDoQ_2JNknNUgZPqtw';
 
   // Inizializza Dropbox con il token di accesso
   static initialize(accessToken: string) {
@@ -34,17 +31,10 @@ export class DropboxService {
       }
       
       // Prova con token da variabili di ambiente
-      const envToken = import.meta.env.VITE_DROPBOX_ACCESS_TOKEN;
+      const envToken = import.meta.env.VITE_DROPBOX_ACCESS_TOKEN || import.meta.env.DROPBOX_ACCESS_TOKEN;
       if (envToken && envToken.length > 50) {
         this.initialize(envToken);
         console.log('✅ Dropbox inizializzato con token da variabili di ambiente');
-        return this.verifyConnection();
-      }
-      
-      // Fallback al token predefinito (se presente)
-      if (this.DEFAULT_ACCESS_TOKEN && this.DEFAULT_ACCESS_TOKEN.length > 50) {
-        this.initialize(this.DEFAULT_ACCESS_TOKEN);
-        console.log('✅ Dropbox inizializzato con token predefinito configurato');
         return this.verifyConnection();
       }
       
@@ -58,9 +48,9 @@ export class DropboxService {
 
   // Carica configurazione da variabili di ambiente
   private static loadEnvironmentConfig() {
-    this.refreshToken = import.meta.env.VITE_DROPBOX_REFRESH_TOKEN || null;
-    this.appKey = import.meta.env.VITE_DROPBOX_APP_KEY || null;
-    this.appSecret = import.meta.env.VITE_DROPBOX_APP_SECRET || null;
+    this.refreshToken = import.meta.env.VITE_DROPBOX_REFRESH_TOKEN || import.meta.env.DROPBOX_REFRESH_TOKEN || null;
+    this.appKey = import.meta.env.VITE_DROPBOX_APP_KEY || import.meta.env.DROPBOX_APP_KEY || null;
+    this.appSecret = import.meta.env.VITE_DROPBOX_APP_SECRET || import.meta.env.DROPBOX_APP_SECRET || null;
     
     console.log('🔧 Configurazione Dropbox da env:', {
       hasRefreshToken: !!this.refreshToken,
