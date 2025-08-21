@@ -2,21 +2,26 @@
 
 Un'applicazione web per gestire sfide fotografiche durante matrimoni, con tema montano delle Dolomiti.
 
+## 🚀 Demo Live
+
+- **Frontend**: [Vercel/Netlify URL]
+- **Backend**: [Railway/Render URL]
+
 ## 🏔️ Caratteristiche
 
 - **10 Gilde delle Montagne**: Ogni tavolo rappresenta una montagna delle Dolomiti
 - **15 Sfide Fotografiche**: Missioni divertenti da completare durante il banchetto
-- **Upload Foto**: Caricamento sicuro delle foto su Dropbox (server-side)
+- **Upload Foto**: Caricamento sicuro delle foto su Google Drive (server-side)
 - **Sincronizzazione**: Database Supabase per sincronizzazione multi-dispositivo
 - **Responsive**: Ottimizzato per mobile e desktop
 
 ## 🚀 Tecnologie
 
 - **Frontend**: React + TypeScript + Tailwind CSS
-- **Backend**: Express.js (Node.js)
+- **Backend**: Express.js + Google Drive API
 - **Database**: Supabase (PostgreSQL)
-- **Storage**: Dropbox (server-side)
-- **Deploy**: Vercel/Netlify
+- **Storage**: Google Drive API (server-side)
+- **Deploy**: Vercel (frontend) + Railway/Render (backend)
 
 ## ⚙️ Configurazione
 
@@ -29,37 +34,22 @@ Crea un file `.env` basato su `.env.example`:
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# Dropbox (Server-side) - OPZIONE 1: Refresh Token (RACCOMANDATO)
-DROPBOX_REFRESH_TOKEN=your_dropbox_refresh_token
-DROPBOX_APP_KEY=your_dropbox_app_key
-DROPBOX_APP_SECRET=your_dropbox_app_secret
-
-# Dropbox (Server-side) - OPZIONE 2: Access Token (DEPRECATO)
-DROPBOX_ACCESS_TOKEN=your_dropbox_access_token
+# Google Drive API (Server-side)
+GOOGLE_DRIVE_FOLDER_ID=your_google_drive_folder_id
+GOOGLE_SERVICE_ACCOUNT_CREDENTIALS_JSON={"type":"service_account",...}
 ```
 
-### 2. Setup Dropbox
+### 2. Setup Google Drive
 
-#### Opzione A: Refresh Token (Raccomandato)
-
-1. Vai su [Dropbox Developers](https://www.dropbox.com/developers/apps)
-2. Crea una nuova app con "Scoped access" e "Full Dropbox"
-3. Nella sezione "Permissions", abilita:
-   - `files.content.write`
-   - `files.content.read`
-   - `sharing.write`
-   - `sharing.read`
-4. Ottieni `App key` e `App secret`
-5. Genera un `Refresh token` usando OAuth2 flow
-6. Configura le variabili d'ambiente
-
-#### Opzione B: Access Token (Deprecato)
-
-1. Vai su [Dropbox Developers](https://www.dropbox.com/developers/apps)
-2. Crea una nuova app e abilita i permessi sopra elencati
-3. Genera un "Access token" (scade dopo poche ore)
-4. Configura `DROPBOX_ACCESS_TOKEN`
-
+1. Vai su [Google Cloud Console](https://console.cloud.google.com/)
+2. Crea un nuovo progetto
+3. Abilita Google Drive API
+4. Crea un Service Account con ruolo Editor
+5. Genera una chiave JSON per il Service Account
+6. Crea una cartella su Google Drive chiamata `sfida-cime-foto`
+7. Condividi la cartella con l'email del Service Account (Editor)
+8. Copia l'ID della cartella dall'URL e configuralo in `GOOGLE_DRIVE_FOLDER_ID`
+9. Converti il file JSON delle credenziali in una stringa e configuralo in `GOOGLE_SERVICE_ACCOUNT_CREDENTIALS_JSON`
 ### 3. Setup Supabase
 
 1. Crea un progetto su [Supabase](https://supabase.com)
@@ -82,27 +72,74 @@ npm run server
 npm run build
 ```
 
+## 🌐 Deploy
+
+### Frontend (Vercel/Netlify)
+
+1. **Vercel**:
+   ```bash
+   npm install -g vercel
+   vercel --prod
+   ```
+
+2. **Netlify**:
+   - Connetti il repository GitHub
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+
+### Backend (Railway/Render)
+
+1. **Railway**:
+   ```bash
+   npm install -g @railway/cli
+   railway login
+   railway deploy
+   ```
+
+2. **Render**:
+   - Connetti il repository GitHub
+   - Build command: `npm install`
+   - Start command: `npm start`
+
+### Variabili d'Ambiente per Deploy
+
+**Frontend (Vercel/Netlify)**:
+```
+VITE_SUPABASE_URL=https://rsuxvabiajlqdtjkzbii.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+GOOGLE_DRIVE_FOLDER_ID=1pODDZOf0PfIUrUcQdxiO3PEkCkv_C4Pi
+GOOGLE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
+```
+
 ## 📱 Architettura
 
-### Upload Foto (Server-Side)
+### Upload Foto (Server-Side con Google Drive)
 
-L'applicazione usa un'architettura server-side per l'upload delle foto:
+L'applicazione usa Google Drive API tramite server Express:
 
 1. **Client** → Invia file al server Express
-2. **Server** → Refresha automaticamente il token Dropbox
-3. **Server** → Carica la foto su Dropbox
+2. **Server** → Autentica con Google Drive usando Service Account
+3. **Server** → Carica la foto su Google Drive
 4. **Server** → Restituisce l'URL pubblico al client
 5. **Client** → Salva i metadati su Supabase
 
 Questo approccio risolve:
-- ✅ Token scaduti (refresh automatico)
-- ✅ Sicurezza (token non esposti al client)
+- ✅ Autenticazione sicura (Service Account)
+- ✅ 15 GB di spazio gratuito (vs 2 GB Dropbox)
 - ✅ Problemi CORS
 - ✅ Gestione errori centralizzata
+- ✅ API più stabile e documentata
+
+### Separazione Frontend/Backend
+
+- **Frontend**: React SPA servita staticamente
+- **Backend**: Express API per Google Drive
+- **Database**: Supabase per metadati e sincronizzazione
+- **Storage**: Google Drive per file immagini
 
 ### Storage
 
-- **Foto**: Dropbox (storage sicuro e condiviso)
+- **Foto**: Google Drive (storage sicuro e condiviso)
 - **Metadati**: Supabase (database relazionale)
 - **Fallback**: LocalStorage (offline)
 
@@ -125,19 +162,68 @@ Dalle più semplici come "Il Brindisi Epico" alle più complesse come "Il Salto 
 
 ## 🚀 Deploy
 
-### Vercel/Netlify (Frontend + API)
+### Opzione 1: Deploy Separato (Consigliato)
+
+**Frontend su Vercel/Netlify**:
+- Build automatico da GitHub
+- CDN globale per performance
+- HTTPS automatico
+
+**Backend su Railway/Render**:
+- Deploy automatico da GitHub
+- Variabili d'ambiente sicure
+- Scaling automatico
+
+### Opzione 2: Deploy Unificato
 
 1. Connetti il repository
 2. Configura le variabili d'ambiente
 3. Deploy automatico
 
-### Server Separato (Opzionale)
+## 🔧 Troubleshooting
 
-Se preferisci separare frontend e backend:
+### Errori Comuni
 
-1. Deploy frontend su Vercel/Netlify
-2. Deploy server Express su Railway/Render
-3. Aggiorna gli endpoint API nel frontend
+1. **"connect ECONNREFUSED"**: Backend non avviato
+   ```bash
+   npm run server
+   ```
+
+2. **"Google Drive non configurato"**: Credenziali mancanti
+   - Verifica `GOOGLE_SERVICE_ACCOUNT_CREDENTIALS_JSON`
+   - Verifica `GOOGLE_DRIVE_FOLDER_ID`
+
+3. **"Supabase non raggiungibile"**: URL/Key errati
+   - Verifica `VITE_SUPABASE_URL`
+   - Verifica `VITE_SUPABASE_ANON_KEY`
+
+### Debug
+
+```bash
+# Test connessioni
+curl http://localhost:3000/api/test-googledrive
+
+# Logs server
+npm run server
+
+# Logs frontend
+npm run dev
+```
+
+## 📊 Monitoraggio
+
+- **Frontend**: Vercel Analytics / Netlify Analytics
+- **Backend**: Railway Metrics / Render Metrics
+- **Database**: Supabase Dashboard
+- **Storage**: Google Drive Storage Usage
+
+## 🔐 Sicurezza
+
+- Service Account per Google Drive (no OAuth)
+- Row Level Security su Supabase
+- Variabili d'ambiente per credenziali
+- HTTPS obbligatorio in produzione
+- CORS configurato per domini specifici
 
 ## 🤝 Contributi
 

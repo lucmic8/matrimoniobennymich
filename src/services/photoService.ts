@@ -73,9 +73,7 @@ export class PhotoService {
         
         // In development, usa path relativo per sfruttare il proxy Vite
         // In production, usa l'origin corrente
-        const apiUrl = window.location.hostname === 'localhost' 
-          ? '/api/upload-googledrive'
-          : `${window.location.origin}/api/upload-googledrive`;
+        const apiUrl = this.getApiUrl('/api/upload-googledrive');
         
         console.log('🌐 API URL:', apiUrl);
         
@@ -431,5 +429,11 @@ export class PhotoService {
       supabase: supabaseTest,
       dropbox: googleDriveTest // Manteniamo il nome per compatibilità UI
     };
+  }
+
+  // Helper per URL API
+  private static getApiUrl(endpoint: string): string {
+    // Per Vercel API routes, usa sempre il path relativo
+    return endpoint;
   }
 }
