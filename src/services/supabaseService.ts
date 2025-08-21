@@ -45,7 +45,23 @@ export class SupabaseService {
 
   // Verifica se Supabase è disponibile
   static isAvailable(): boolean {
-    return this.supabase !== null && this.isInitialized;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    // Verifica che le variabili esistano e non siano placeholder
+    const hasValidUrl = supabaseUrl && 
+                       supabaseUrl !== 'your_supabase_project_url' && 
+                       supabaseUrl.startsWith('https://') &&
+                       supabaseUrl.includes('.supabase.co');
+    
+    const hasValidKey = supabaseKey && 
+                       supabaseKey !== 'your_supabase_anon_key' &&
+                       supabaseKey.length > 50; // Le chiavi Supabase sono lunghe
+    
+    return this.supabase !== null && 
+           this.isInitialized && 
+           hasValidUrl && 
+           hasValidKey;
   }
 
   // Salva foto su Supabase
@@ -82,11 +98,23 @@ export class SupabaseService {
   // Carica foto da Supabase
   static async getGuildPhotos(guildId: string): Promise<ChallengePhoto[]> {
     if (!this.isAvailable()) {
-      console.log('📱 Supabase non disponibile, uso storage locale');
+      console.log('📱 Supabase non configurato o non disponibile, uso storage locale');
       return [];
     }
 
     try {
+      // Test di connettività prima della query
+      const testResponse = await fetch(import.meta.env.VITE_SUPABASE_URL + '/rest/v1/', {
+        method: 'HEAD',
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+        }
+      });
+      
+      if (!testResponse.ok) {
+        throw new Error('Supabase non raggiungibile');
+      }
+
       const { data, error } = await this.supabase!
         .from('challenge_photos')
         .select('*')
@@ -101,7 +129,7 @@ export class SupabaseService {
       console.log(`📸 Caricate ${data?.length || 0} foto da Supabase per ${guildId}`);
       return data || [];
     } catch (error) {
-      console.error('❌ Errore Supabase getGuildPhotos:', error);
+      console.warn('⚠️ Errore caricamento foto Supabase (uso storage locale):', error instanceof Error ? error.message : error);
       return [];
     }
   }
@@ -166,11 +194,23 @@ export class SupabaseService {
   // Carica progresso da Supabase
   static async getGuildProgress(guildId: string): Promise<GuildProgress[]> {
     if (!this.isAvailable()) {
-      console.log('📱 Supabase non disponibile, uso storage locale');
+      console.log('📱 Supabase non configurato o non disponibile, uso storage locale');
       return [];
     }
 
     try {
+      // Test di connettività prima della query
+      const testResponse = await fetch(import.meta.env.VITE_SUPABASE_URL + '/rest/v1/', {
+        method: 'HEAD',
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+        }
+      });
+      
+      if (!testResponse.ok) {
+        throw new Error('Supabase non raggiungibile');
+      }
+
       const { data, error } = await this.supabase!
         .from('guild_progress')
         .select('*')
@@ -185,7 +225,7 @@ export class SupabaseService {
       console.log(`📊 Caricato progresso da Supabase per ${guildId}:`, data?.length || 0);
       return data || [];
     } catch (error) {
-      console.error('❌ Errore Supabase getGuildProgress:', error);
+      console.warn('⚠️ Errore caricamento progresso Supabase (uso storage locale):', error instanceof Error ? error.message : error);
       return [];
     }
   }
@@ -193,24 +233,46 @@ export class SupabaseService {
   // Test connessione Supabase
   static async testConnection(): Promise<boolean> {
     if (!this.isAvailable()) {
+      console.log('📱 Supabase non configurato correttamente (usando storage locale)');
       return false;
     }
 
     try {
-      const { data, error } = await this.supabase!
-        .from('challenge_photos')
-        .select('count')
-        .limit(1);
+      // Test con timeout più breve e gestione errori migliorata
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondi timeout
+      
+      const testResponse = await fetch(import.meta.env.VITE_SUPABASE_URL + '/rest/v1/', {
+        method: 'HEAD',
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json'
+        },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
 
-      if (error) {
-        console.error('❌ Test connessione Supabase fallito:', error);
+      if (!testResponse.ok) {
+        console.log('⚠️ Test connessione Supabase fallito (status:', testResponse.status, ') - usando storage locale');
         return false;
       }
 
-      console.log('✅ Test connessione Supabase riuscito');
+      console.log('✅ Connessione Supabase attiva');
       return true;
     } catch (error) {
-      console.error('❌ Errore test connessione Supabase:', error);
+      // Non loggare errori di rete come errori, sono normali se Supabase non è configurato
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          console.log('⚠️ Timeout connessione Supabase - usando storage locale');
+        } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          console.log('⚠️ Supabase non raggiungibile - usando storage locale');
+        } else {
+          console.log('⚠️ Errore connessione Supabase:', error.message, '- usando storage locale');
+        }
+      } else {
+        console.log('⚠️ Errore sconosciuto connessione Supabase - usando storage locale');
+      }
       return false;
     }
   }

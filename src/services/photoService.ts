@@ -60,10 +60,10 @@ export class PhotoService {
       }
       console.log('✅ Tutte le validazioni superate');
       
-      // Carica su Dropbox SOLO tramite backend
+      // Carica su Google Drive tramite backend
       let photoUrl: string;
       try {
-        console.log('=== 📤 CARICAMENTO SU DROPBOX TRAMITE SERVER ===');
+        console.log('=== 📤 CARICAMENTO SU GOOGLE DRIVE TRAMITE SERVER ===');
         
         // Prepara FormData per l'upload
         const formData = new FormData();
@@ -71,23 +71,35 @@ export class PhotoService {
         formData.append('guildId', guildId);
         formData.append('challengeId', challengeId.toString());
         
-        // Invia al backend
-        const response = await fetch('/api/upload-dropbox', {
+        // Determina l'URL del server
+        const serverUrl = window.location.hostname === 'localhost' 
+          ? 'http://localhost:3000' 
+          : window.location.origin;
+        
+        console.log('🌐 Server URL:', serverUrl);
+        
+        // Invia al backend con timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 secondi timeout
+        
+        const response = await fetch(`${serverUrl}/api/upload-googledrive`, {
           method: 'POST',
-          body: formData
+          body: formData,
+          signal: controller.signal
         });
         
+        clearTimeout(timeoutId);
+        
         if (!response.ok) {
-          // Read response body only once
-          const responseText = await response.text();
-          let errorData;
+          let errorMessage = `Errore server: ${response.status}`;
           try {
-            errorData = JSON.parse(responseText);
-            throw new Error(errorData.error || `Errore server: ${response.status}`);
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
           } catch (parseError) {
-            // If JSON parsing fails, use the raw text
-            throw new Error(`Errore server: ${response.status} - ${responseText}`);
+            // Se non riesce a parsare JSON, usa il messaggio di default
+            console.warn('Impossibile parsare risposta errore:', parseError);
           }
+          throw new Error(errorMessage);
         }
         
         const result = await response.json();
@@ -98,24 +110,25 @@ export class PhotoService {
         
         photoUrl = result.photoUrl;
         
-        console.log('✅ Caricamento Dropbox tramite server completato:', photoUrl.substring(0, 100) + '...');
+        console.log('✅ Caricamento Google Drive tramite server completato:', photoUrl.substring(0, 100) + '...');
       } catch (error) {
         console.error('❌ Errore caricamento tramite server:', error);
-        console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack');
         
-        // Messaggio di errore più specifico
-        let errorMessage = 'Impossibile caricare la foto';
+        // Gestione errori più specifica
+        let errorMessage = 'Impossibile caricare la foto sul server';
         if (error instanceof Error) {
-          if (error.message.includes('server') || error.message.includes('500')) {
-            errorMessage += ': Errore del server';
-          } else if (error.message.includes('network') || error.message.includes('fetch')) {
-            errorMessage += ': Problema di connessione internet';
+          if (error.name === 'AbortError') {
+            errorMessage = 'Timeout: Il caricamento sta impiegando troppo tempo';
+          } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            errorMessage = 'Errore di connessione: Verifica la connessione internet e che il server sia avviato';
+          } else if (error.message.includes('500')) {
+            errorMessage = 'Errore interno del server: Verifica la configurazione Google Drive';
           } else if (error.message.includes('413')) {
-            errorMessage += ': File troppo grande per il server';
-          } else if (error.message.includes('token') || error.message.includes('unauthorized')) {
-            errorMessage += ': Problema di autenticazione Dropbox';
+            errorMessage = 'File troppo grande (max 50MB)';
+          } else if (error.message.includes('401') || error.message.includes('403')) {
+            errorMessage = 'Errore di autenticazione Google Drive';
           } else {
-            errorMessage += ': ' + error.message;
+            errorMessage = error.message;
           }
         }
         throw new Error(errorMessage);
@@ -271,9 +284,9 @@ export class PhotoService {
 
       // Elimina da Dropbox tramite backend
       const photo = await this.getChallengePhoto(guildId, challengeId);
-      if (photo && photo.photo_url.includes('dropbox')) {
+      if (photo && photo.photo_url.includes('drive.google.com')) {
         try {
-          const response = await fetch('/api/delete-dropbox', {
+          const response = await fetch('/api/delete-googledrive', {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json'
@@ -286,12 +299,12 @@ export class PhotoService {
           });
           
           if (response.ok) {
-            console.log('🗑️ Foto eliminata da Dropbox tramite backend');
+            console.log('🗑️ Foto eliminata da Google Drive tramite backend');
           } else {
-            console.warn('⚠️ Errore eliminazione Dropbox tramite backend');
+            console.warn('⚠️ Errore eliminazione Google Drive tramite backend');
           }
         } catch (error) {
-          console.warn('Errore eliminazione Dropbox tramite backend:', error);
+          console.warn('Errore eliminazione Google Drive tramite backend:', error);
         }
       }
 
@@ -373,25 +386,47 @@ export class PhotoService {
 
   // Test connessioni
   static async testConnections(): Promise<{ supabase: boolean; dropbox: boolean }> {
-    const supabaseTest = await SupabaseService.testConnection();
-    
-    // Test connessione Dropbox tramite server
-    let dropboxTest = false;
+    let supabaseTest = false;
     try {
-      const response = await fetch('/api/test-dropbox');
-      if (response.ok) {
-        const result = await response.json();
-        dropboxTest = result.success;
-      }
+      supabaseTest = await SupabaseService.testConnection();
     } catch (error) {
-      console.warn('Test Dropbox fallito:', error);
+      console.log('⚠️ Test Supabase fallito, continuo con storage locale');
+      supabaseTest = false;
     }
     
-    console.log('🔍 Test connessioni:', { supabase: supabaseTest, dropbox: dropboxTest });
+    // Test connessione Google Drive tramite server
+    let googleDriveTest = false;
+    try {
+      const serverUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3000' 
+        : window.location.origin;
+        
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondi timeout
+      
+      const response = await fetch(`${serverUrl}/api/test-googledrive`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const result = await response.json();
+        googleDriveTest = result.success;
+      }
+    } catch (error) {
+      console.log('⚠️ Test Google Drive fallito - server non disponibile');
+    }
+    
+    console.log('🔍 Test connessioni:', { supabase: supabaseTest, googledrive: googleDriveTest });
     
     return {
       supabase: supabaseTest,
-      dropbox: dropboxTest
+      dropbox: googleDriveTest // Manteniamo il nome per compatibilità UI
     };
   }
 }

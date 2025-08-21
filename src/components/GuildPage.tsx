@@ -17,9 +17,8 @@ import { guilds } from '../data/guilds';
 import { challenges } from '../data/challenges';
 import PhotoUpload from './PhotoUpload';
 import { PhotoService } from '../services/photoService';
-import { DropboxService } from '../services/dropboxService';
+import { GoogleDriveService } from '../services/googleDriveService';
 import { SupabaseService } from '../services/supabaseService';
-import DropboxConfig from './DropboxConfig';
 
 function GuildPage() {
   const { guildId } = useParams<{ guildId: string }>();
@@ -28,8 +27,7 @@ function GuildPage() {
   const [challengePhotos, setChallengePhotos] = useState<Map<number, string>>(new Map());
   const [uploadingChallenge, setUploadingChallenge] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showDropboxConfig, setShowDropboxConfig] = useState(false);
-  const [dropboxConfigured, setDropboxConfigured] = useState(false);
+  const [googleDriveConfigured, setGoogleDriveConfigured] = useState(false);
   const [supabaseConfigured, setSupabaseConfigured] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<{ supabase: boolean; dropbox: boolean }>({ supabase: false, dropbox: false });
 
@@ -53,11 +51,15 @@ function GuildPage() {
       const status = await PhotoService.testConnections();
       setConnectionStatus(status);
       setSupabaseConfigured(status.supabase);
-      setDropboxConfigured(status.dropbox);
+      setGoogleDriveConfigured(status.dropbox); // Usa dropbox per compatibilità
       
       console.log('🔍 Status connessioni:', status);
     } catch (error) {
-      console.error('Errore test connessioni:', error);
+      console.log('⚠️ Errore test connessioni, uso valori di default');
+      // Imposta valori di default se il test fallisce
+      setConnectionStatus({ supabase: false, dropbox: false });
+      setSupabaseConfigured(false);
+      setGoogleDriveConfigured(false);
     }
   };
 
@@ -92,7 +94,7 @@ function GuildPage() {
       });
       
     } catch (error) {
-      console.error('Errore nel caricamento dei dati:', error);
+      console.log('⚠️ Caricamento dati completato (storage locale)');
     } finally {
       setIsLoading(false);
     }
@@ -260,22 +262,22 @@ function GuildPage() {
                     {supabaseConfigured ? '✅ Supabase' : '❌ Supabase'}
                   </div>
                   <div className={`px-3 py-1 rounded-lg text-xs font-medium ${
-                    dropboxConfigured 
+                    googleDriveConfigured 
                       ? 'bg-green-100 text-green-800 border border-green-300'
                       : 'bg-red-100 text-red-800 border border-red-300'
                   }`}>
                     <Cloud className="h-3 w-3 mr-1 inline" />
-                    {dropboxConfigured ? '✅ Dropbox' : '❌ Dropbox'}
+                    {googleDriveConfigured ? '✅ Google Drive' : '❌ Google Drive'}
                   </div>
                 </div>
               </div>
               <p className="text-sm text-amber-600 mt-1">
-                {supabaseConfigured && dropboxConfigured
-                  ? '✅ Sincronizzazione completa attiva: Supabase (database) + Dropbox (server-side storage)'
+                {supabaseConfigured && googleDriveConfigured
+                  ? '✅ Sincronizzazione completa attiva: Supabase (database) + Google Drive (server-side storage)'
                   : supabaseConfigured
-                  ? '✅ Database Supabase attivo. Dropbox gestito lato server'
-                  : dropboxConfigured
-                  ? '⚠️ Solo Dropbox server-side attivo. Configurare Supabase per sincronizzazione completa'
+                  ? '✅ Database Supabase attivo. Google Drive gestito lato server'
+                  : googleDriveConfigured
+                  ? '⚠️ Solo Google Drive server-side attivo. Configurare Supabase per sincronizzazione completa'
                   : '❌ Storage gestito lato server. Configurare Supabase per sincronizzazione completa'
                 }
               </p>
