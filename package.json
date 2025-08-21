@@ -7,8 +7,8 @@
     "dev": "vite",
     "dev:full": "concurrently \"npm run dev\" \"vercel dev --listen 3000\"",
     "build": "vite build",
-    "build:check": "tsc && vite build",
-    "lint": "eslint .",
+    "vercel:dev": "npx vercel dev --listen 3000",
+    "dev:full": "concurrently \"npm run dev\" \"npm run vercel:dev\""
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "server": "node server.js",
