@@ -49,8 +49,28 @@ GOOGLE_SERVICE_ACCOUNT_CREDENTIALS_JSON={"type":"service_account",...}
 6. Crea una cartella su Google Drive chiamata `sfida-cime-foto`
 7. Condividi la cartella con l'email del Service Account (Editor)
 8. Copia l'ID della cartella dall'URL e configuralo in `GOOGLE_DRIVE_FOLDER_ID`
-9. Converti il file JSON delle credenziali in una stringa e configuralo in `GOOGLE_SERVICE_ACCOUNT_CREDENTIALS_JSON`
-### 3. Setup Supabase
+9. Converti il file JSON delle credenziali in una stringa e configuralo in `GOOGLE_SERVICE_ACCOUNT_KEY`
+
+### 3. Avvio Sviluppo Locale
+
+Per far funzionare le API routes in locale, devi usare Vercel CLI:
+
+```bash
+# Installa Vercel CLI
+npm install -g vercel
+
+# Avvia tutto insieme (CONSIGLIATO)
+npm run dev:full
+
+# Oppure separatamente:
+# Terminal 1
+npm run dev
+# Terminal 2  
+vercel dev
+```
+
+Le API routes saranno disponibili su `http://localhost:3000/api/*`
+### 4. Setup Supabase
 
 1. Crea un progetto su [Supabase](https://supabase.com)
 2. Esegui le migrazioni in `supabase/migrations/`

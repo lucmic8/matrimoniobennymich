@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:full": "concurrently \"npm run dev\" \"vercel dev\"",
     "build": "vite build",
     "build:check": "tsc && vite build",
     "lint": "eslint .",
@@ -12,6 +13,7 @@
     "preview": "vite preview",
     "server": "node server.js",
     "start": "node server.js",
+    "vercel:dev": "vercel dev",
     "deploy:vercel": "vercel --prod"
   },
   "dependencies": {
@@ -34,6 +36,7 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.18",
+    "concurrently": "^9.2.0",
     "eslint": "^9.9.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.11",
