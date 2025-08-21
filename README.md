@@ -20,7 +20,7 @@ Un'applicazione web per gestire sfide fotografiche durante matrimoni, con tema m
 - **Frontend**: React + TypeScript + Tailwind CSS
 - **Backend**: Express.js + Google Drive API
 - **Database**: Supabase (PostgreSQL)
-- **Storage**: Google Drive API (server-side)
+- **Storage**: Google Drive API (Vercel API routes)
 - **Deploy**: Vercel (frontend) + Railway/Render (backend)
 
 ## ⚙️ Configurazione
@@ -115,12 +115,12 @@ GOOGLE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
 
 ### Upload Foto (Server-Side con Google Drive)
 
-L'applicazione usa Google Drive API tramite server Express:
+L'applicazione usa Google Drive API tramite Vercel API routes:
 
-1. **Client** → Invia file al server Express
-2. **Server** → Autentica con Google Drive usando Service Account
-3. **Server** → Carica la foto su Google Drive
-4. **Server** → Restituisce l'URL pubblico al client
+1. **Client** → Invia file alle API routes Vercel
+2. **API Route** → Autentica con Google Drive usando Service Account
+3. **API Route** → Carica la foto su Google Drive
+4. **API Route** → Restituisce l'URL pubblico al client
 5. **Client** → Salva i metadati su Supabase
 
 Questo approccio risolve:
@@ -130,10 +130,10 @@ Questo approccio risolve:
 - ✅ Gestione errori centralizzata
 - ✅ API più stabile e documentata
 
-### Separazione Frontend/Backend
+### Architettura Serverless
 
-- **Frontend**: React SPA servita staticamente
-- **Backend**: Express API per Google Drive
+- **Frontend**: React SPA
+- **API Routes**: Vercel serverless functions per Google Drive
 - **Database**: Supabase per metadati e sincronizzazione
 - **Storage**: Google Drive per file immagini
 
@@ -162,23 +162,13 @@ Dalle più semplici come "Il Brindisi Epico" alle più complesse come "Il Salto 
 
 ## 🚀 Deploy
 
-### Opzione 1: Deploy Separato (Consigliato)
+### Deploy Vercel (Consigliato)
 
-**Frontend su Vercel/Netlify**:
+**Full-stack su Vercel**:
 - Build automatico da GitHub
 - CDN globale per performance
 - HTTPS automatico
-
-**Backend su Railway/Render**:
-- Deploy automatico da GitHub
-- Variabili d'ambiente sicure
-- Scaling automatico
-
-### Opzione 2: Deploy Unificato
-
-1. Connetti il repository
-2. Configura le variabili d'ambiente
-3. Deploy automatico
+- API routes serverless integrate
 
 ## 🔧 Troubleshooting
 

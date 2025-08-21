@@ -12,9 +12,7 @@
     "preview": "vite preview",
     "server": "node server.js",
     "start": "node server.js",
-    "deploy:vercel": "vercel --prod",
-    "deploy:netlify": "netlify deploy --prod",
-    "test:connections": "node -e \"console.log('Testing connections...'); fetch('http://localhost:3000/api/test-googledrive').then(r=>r.json()).then(console.log).catch(console.error)\""
+    "deploy:vercel": "vercel --prod"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.55.0",
