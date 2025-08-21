@@ -17,7 +17,6 @@ import { guilds } from '../data/guilds';
 import { challenges } from '../data/challenges';
 import PhotoUpload from './PhotoUpload';
 import { PhotoService } from '../services/photoService';
-import { GoogleDriveService } from '../services/googleDriveService';
 import { SupabaseService } from '../services/supabaseService';
 
 function GuildPage() {
@@ -51,7 +50,7 @@ function GuildPage() {
       const status = await PhotoService.testConnections();
       setConnectionStatus(status);
       setSupabaseConfigured(status.supabase);
-      setGoogleDriveConfigured(status.dropbox); // Usa dropbox per compatibilità
+      setGoogleDriveConfigured(status.dropbox); // dropbox rappresenta Google Drive per compatibilità UI
       
       console.log('🔍 Status connessioni:', status);
     } catch (error) {
@@ -254,6 +253,17 @@ function GuildPage() {
               <div className="flex items-center justify-between">
                 <span className="text-amber-700 font-semibold">Storage e Sincronizzazione</span>
                 <div className="flex gap-2">
+                  <button
+                    onClick={async () => {
+                      console.log('=== 🔍 DEBUG CONNESSIONI ===');
+                      const status = await PhotoService.testConnections();
+                      console.log('Status completo:', status);
+                      alert(`Debug:\nSupabase: ${status.supabase}\nGoogle Drive: ${status.dropbox}\n\nVedi console per dettagli`);
+                    }}
+                    className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                  >
+                    🔍 Debug
+                  </button>
                   <div className={`px-3 py-1 rounded-lg text-xs font-medium ${
                     supabaseConfigured 
                       ? 'bg-green-100 text-green-800 border border-green-300'

@@ -1,4 +1,3 @@
-import { DropboxService } from './dropboxService'
 import { SupabaseService } from './supabaseService'
 
 export interface ChallengePhoto {
@@ -281,7 +280,7 @@ export class PhotoService {
         console.warn('⚠️ Errore eliminazione da Supabase');
       }
 
-      // Elimina da Dropbox tramite backend
+      // Elimina da Google Drive tramite backend
       const photo = await this.getChallengePhoto(guildId, challengeId);
       if (photo && photo.photo_url.includes('drive.google.com')) {
         try {
@@ -427,7 +426,7 @@ export class PhotoService {
     
     return {
       supabase: supabaseTest,
-      dropbox: googleDriveTest // Manteniamo il nome per compatibilità UI
+      dropbox: googleDriveTest // Nome mantenuto per compatibilità UI (rappresenta Google Drive)
     };
   }
 
