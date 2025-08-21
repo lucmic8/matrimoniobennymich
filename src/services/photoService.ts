@@ -78,14 +78,16 @@ export class PhotoService {
         });
         
         if (!response.ok) {
+          // Read response body only once
+          const responseText = await response.text();
           let errorData;
           try {
-            errorData = await response.json();
-          } catch {
-            const errorText = await response.text();
-            throw new Error(`Errore server: ${response.status} - ${errorText}`);
+            errorData = JSON.parse(responseText);
+            throw new Error(errorData.error || `Errore server: ${response.status}`);
+          } catch (parseError) {
+            // If JSON parsing fails, use the raw text
+            throw new Error(`Errore server: ${response.status} - ${responseText}`);
           }
-          throw new Error(errorData.error || `Errore server: ${response.status}`);
         }
         
         const result = await response.json();
