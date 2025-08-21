@@ -8,22 +8,28 @@ export default async function handler(req, res) {
   try {
     console.log('=== 🔍 TEST GOOGLE DRIVE VERCEL API ===');
     
-    // Verifica variabili d'ambiente
-    if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY || !process.env.GOOGLE_DRIVE_FOLDER_ID) {
+    // Verifica variabili d'ambiente (nuovo formato)
+    if (!process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY || !process.env.GOOGLE_DRIVE_FOLDER_ID) {
       console.error('❌ Variabili d\'ambiente mancanti');
       return res.status(500).json({ 
         success: false,
         error: "Configurazione Google Drive mancante",
-        details: "GOOGLE_SERVICE_ACCOUNT_KEY o GOOGLE_DRIVE_FOLDER_ID non configurati"
+        details: "GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY o GOOGLE_DRIVE_FOLDER_ID non configurati"
       });
     }
 
     console.log('📁 Folder ID configurato:', process.env.GOOGLE_DRIVE_FOLDER_ID);
-    console.log('🔑 Credenziali presenti:', !!process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+    console.log('🔑 Client Email configurato:', process.env.GOOGLE_CLIENT_EMAIL);
+    console.log('🔑 Private Key presente:', !!process.env.GOOGLE_PRIVATE_KEY);
     
-    // Autenticazione con service account
+    // Autenticazione con service account (nuovo formato)
     const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY), 
+      credentials: {
+        type: "service_account",
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        project_id: "your-project-id" // Questo può essere qualsiasi valore per Google Drive
+      },
       scopes: ["https://www.googleapis.com/auth/drive.file"],
     });
 

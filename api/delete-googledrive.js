@@ -6,8 +6,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Verifica variabili d'ambiente
-    if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+    // Verifica variabili d'ambiente (nuovo formato)
+    if (!process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
       return res.status(500).json({ 
         success: false,
         error: "Google Drive non configurato" 
@@ -30,9 +30,14 @@ export default async function handler(req, res) {
       });
     }
 
-    // Autenticazione con service account
+    // Autenticazione con service account (nuovo formato)
     const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY), 
+      credentials: {
+        type: "service_account",
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        project_id: "your-project-id" // Questo può essere qualsiasi valore per Google Drive
+      },
       scopes: ["https://www.googleapis.com/auth/drive.file"],
     });
 
