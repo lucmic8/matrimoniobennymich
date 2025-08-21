@@ -42,7 +42,6 @@ function GuildPage() {
   useEffect(() => {
     const initializeData = async () => {
       await checkConnections();
-      await autoConfigureDropbox();
       await loadGuildData();
     };
     
@@ -59,24 +58,6 @@ function GuildPage() {
       console.log('🔍 Status connessioni:', status);
     } catch (error) {
       console.error('Errore test connessioni:', error);
-    }
-  };
-
-  const autoConfigureDropbox = () => {
-    try {
-      // Prova inizializzazione automatica
-      const initialized = DropboxService.initializeWithDefaultToken();
-      if (initialized) {
-        setDropboxConfigured(true);
-        console.log('✅ Dropbox configurato automaticamente');
-        return;
-      }
-      
-      console.warn('⚠️ Dropbox non configurato - serve token utente');
-      setDropboxConfigured(false);
-    } catch (error) {
-      console.error('❌ Errore configurazione Dropbox:', error);
-      setDropboxConfigured(false);
     }
   };
 
@@ -278,28 +259,24 @@ function GuildPage() {
                   }`}>
                     {supabaseConfigured ? '✅ Supabase' : '❌ Supabase'}
                   </div>
-                  <button
-                    onClick={() => setShowDropboxConfig(true)}
-                    className={`px-3 py-1 rounded-lg transition-all duration-200 flex items-center text-xs font-medium ${
-                      dropboxConfigured
-                        ? 'bg-green-100 text-green-800 border border-green-300 cursor-default'
-                        : 'bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200'
-                    }`}
-                    disabled={dropboxConfigured}
-                  >
-                    <Cloud className="h-3 w-3 mr-1" />
-                    {dropboxConfigured ? '✅ Dropbox' : '⚙️ Config'}
-                  </button>
+                  <div className={`px-3 py-1 rounded-lg text-xs font-medium ${
+                    dropboxConfigured 
+                      ? 'bg-green-100 text-green-800 border border-green-300'
+                      : 'bg-red-100 text-red-800 border border-red-300'
+                  }`}>
+                    <Cloud className="h-3 w-3 mr-1 inline" />
+                    {dropboxConfigured ? '✅ Dropbox' : '❌ Dropbox'}
+                  </div>
                 </div>
               </div>
               <p className="text-sm text-amber-600 mt-1">
                 {supabaseConfigured && dropboxConfigured
-                  ? '✅ Sincronizzazione completa attiva: Supabase (database) + Dropbox (storage)'
+                  ? '✅ Sincronizzazione completa attiva: Supabase (database) + Dropbox (server-side storage)'
                   : supabaseConfigured
-                  ? '✅ Database Supabase attivo. Dropbox opzionale per backup aggiuntivo'
+                  ? '✅ Database Supabase attivo. Dropbox gestito lato server'
                   : dropboxConfigured
-                  ? '⚠️ Solo Dropbox attivo. Configurare Supabase per sincronizzazione completa'
-                  : '❌ Nessuna sincronizzazione attiva. Solo storage locale disponibile'
+                  ? '⚠️ Solo Dropbox server-side attivo. Configurare Supabase per sincronizzazione completa'
+                  : '❌ Storage gestito lato server. Configurare Supabase per sincronizzazione completa'
                 }
               </p>
             </div>
@@ -420,17 +397,6 @@ function GuildPage() {
           </div>
         </div>
       </div>
-
-      {/* Dropbox Configuration Modal */}
-      {showDropboxConfig && (
-        <DropboxConfig
-          onClose={() => setShowDropboxConfig(false)}
-          onConfigured={() => {
-            setDropboxConfigured(true);
-            setShowDropboxConfig(false);
-          }}
-        />
-      )}
 
       {/* Photo Upload Modal */}
       {uploadingChallenge && (

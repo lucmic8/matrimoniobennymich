@@ -60,14 +60,14 @@ export class PhotoService {
       }
       console.log('✅ Tutte le validazioni superate');
       
-      // Carica su Dropbox tramite backend
+      // Carica su Dropbox SOLO tramite backend
       let photoUrl: string;
       try {
-        console.log('=== 📤 CARICAMENTO SU DROPBOX TRAMITE BACKEND ===');
+        console.log('=== 📤 CARICAMENTO SU DROPBOX TRAMITE SERVER ===');
         
         // Prepara FormData per l'upload
         const formData = new FormData();
-        formData.append('photo', file);
+        formData.append('file', file);
         formData.append('guildId', guildId);
         formData.append('challengeId', challengeId.toString());
         
@@ -78,16 +78,27 @@ export class PhotoService {
         });
         
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Errore server: ${response.status} - ${errorText}`);
+          let errorData;
+          try {
+            errorData = await response.json();
+          } catch {
+            const errorText = await response.text();
+            throw new Error(`Errore server: ${response.status} - ${errorText}`);
+          }
+          throw new Error(errorData.error || `Errore server: ${response.status}`);
         }
         
         const result = await response.json();
-        photoUrl = result.url;
         
-        console.log('✅ Caricamento Dropbox tramite backend completato:', photoUrl.substring(0, 100) + '...');
+        if (!result.success) {
+          throw new Error(result.error || 'Upload fallito');
+        }
+        
+        photoUrl = result.photoUrl;
+        
+        console.log('✅ Caricamento Dropbox tramite server completato:', photoUrl.substring(0, 100) + '...');
       } catch (error) {
-        console.error('❌ Errore caricamento tramite backend:', error);
+        console.error('❌ Errore caricamento tramite server:', error);
         console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack');
         
         // Messaggio di errore più specifico
@@ -99,6 +110,8 @@ export class PhotoService {
             errorMessage += ': Problema di connessione internet';
           } else if (error.message.includes('413')) {
             errorMessage += ': File troppo grande per il server';
+          } else if (error.message.includes('token') || error.message.includes('unauthorized')) {
+            errorMessage += ': Problema di autenticazione Dropbox';
           } else {
             errorMessage += ': ' + error.message;
           }
@@ -360,11 +373,14 @@ export class PhotoService {
   static async testConnections(): Promise<{ supabase: boolean; dropbox: boolean }> {
     const supabaseTest = await SupabaseService.testConnection();
     
-    // Test connessione Dropbox tramite backend
+    // Test connessione Dropbox tramite server
     let dropboxTest = false;
     try {
       const response = await fetch('/api/test-dropbox');
-      dropboxTest = response.ok;
+      if (response.ok) {
+        const result = await response.json();
+        dropboxTest = result.success;
+      }
     } catch (error) {
       console.warn('Test Dropbox fallito:', error);
     }

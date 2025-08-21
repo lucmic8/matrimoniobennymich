@@ -21,11 +21,79 @@ app.use(express.json());
 // Serve static files from dist directory
 app.use(express.static('dist'));
 
-// Token Dropbox - Carica solo da variabili d'ambiente
-const DROPBOX_TOKEN = process.env.DROPBOX_ACCESS_TOKEN || process.env.DROPBOX_TOKEN;
+// Configurazione Dropbox - Carica da variabili d'ambiente
+const DROPBOX_REFRESH_TOKEN = process.env.DROPBOX_REFRESH_TOKEN;
+const DROPBOX_APP_KEY = process.env.DROPBOX_APP_KEY;
+const DROPBOX_APP_SECRET = process.env.DROPBOX_APP_SECRET;
 
-if (!DROPBOX_TOKEN) {
-  console.error('❌ DROPBOX_ACCESS_TOKEN non configurato nelle variabili d\'ambiente');
+// Fallback per token di accesso diretto (deprecato)
+let DROPBOX_ACCESS_TOKEN = process.env.DROPBOX_ACCESS_TOKEN || process.env.DROPBOX_TOKEN;
+
+if (!DROPBOX_REFRESH_TOKEN && !DROPBOX_ACCESS_TOKEN) {
+  console.error('❌ Nessun token Dropbox configurato. Serve DROPBOX_REFRESH_TOKEN o DROPBOX_ACCESS_TOKEN');
+}
+
+if (DROPBOX_REFRESH_TOKEN && DROPBOX_APP_KEY && DROPBOX_APP_SECRET) {
+  console.log('✅ Configurazione Dropbox completa con refresh token');
+} else if (DROPBOX_ACCESS_TOKEN) {
+  console.log('⚠️ Usando access token diretto (scadrà)');
+} else {
+  console.log('❌ Configurazione Dropbox incompleta');
+}
+
+// Funzione per ottenere un access token valido
+async function getValidAccessToken() {
+  // Se abbiamo refresh token, usalo per ottenere un nuovo access token
+  if (DROPBOX_REFRESH_TOKEN && DROPBOX_APP_KEY && DROPBOX_APP_SECRET) {
+    try {
+      console.log('🔄 Refreshing Dropbox access token...');
+      
+      const response = await fetch('https://api.dropboxapi.com/oauth2/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'refresh_token',
+          refresh_token: DROPBOX_REFRESH_TOKEN,
+          client_id: DROPBOX_APP_KEY,
+          client_secret: DROPBOX_APP_SECRET
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Errore refresh token:', response.status, errorText);
+        throw new Error(`Refresh token failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.access_token) {
+        // Aggiorna il token in memoria
+        DROPBOX_ACCESS_TOKEN = data.access_token;
+        console.log('✅ Access token refreshed successfully');
+        return data.access_token;
+      } else {
+        throw new Error('No access token in refresh response');
+      }
+    } catch (error) {
+      console.error('❌ Errore nel refresh del token:', error);
+      // Fallback al token esistente se disponibile
+      if (DROPBOX_ACCESS_TOKEN) {
+        console.log('⚠️ Usando access token esistente come fallback');
+        return DROPBOX_ACCESS_TOKEN;
+      }
+      throw error;
+    }
+  }
+  
+  // Fallback: usa il token diretto se disponibile
+  if (DROPBOX_ACCESS_TOKEN) {
+    return DROPBOX_ACCESS_TOKEN;
+  }
+  
+  throw new Error('Nessun token Dropbox disponibile');
 }
 
 // Endpoint per upload file su Dropbox
@@ -69,12 +137,15 @@ app.post('/api/upload-dropbox', async (req, res) => {
 
     console.log('📂 Path generato:', filePath);
 
+    // Ottieni un access token valido
+    const accessToken = await getValidAccessToken();
+
     // Upload su Dropbox
     console.log('📤 Caricamento su Dropbox...');
     const uploadResponse = await fetch('https://content.dropboxapi.com/2/files/upload', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${DROPBOX_TOKEN}`,
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/octet-stream',
         'Dropbox-API-Arg': JSON.stringify({
           path: filePath,
@@ -124,7 +195,7 @@ app.post('/api/upload-dropbox', async (req, res) => {
       const linkResponse = await fetch('https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${DROPBOX_TOKEN}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -160,7 +231,7 @@ app.post('/api/upload-dropbox', async (req, res) => {
         const simpleLinkResponse = await fetch('https://api.dropboxapi.com/2/sharing/create_shared_link', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${DROPBOX_TOKEN}`,
+            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
@@ -222,10 +293,12 @@ app.post('/api/upload-dropbox', async (req, res) => {
 // Endpoint per test connessione
 app.get('/api/test-dropbox', async (req, res) => {
   try {
+    const accessToken = await getValidAccessToken();
+    
     const response = await fetch('https://api.dropboxapi.com/2/users/get_current_account', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${DROPBOX_TOKEN}`,
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
       }
     });
