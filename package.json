@@ -6,15 +6,21 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:check": "tsc && vite build",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "server": "node server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "deploy:vercel": "vercel --prod",
+    "deploy:netlify": "netlify deploy --prod",
+    "test:connections": "node -e \"console.log('Testing connections...'); fetch('http://localhost:3000/api/test-googledrive').then(r=>r.json()).then(console.log).catch(console.error)\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.55.0",
     "cors": "^2.8.5",
-    "express": "^5.1.0",
+    "dotenv": "^17.2.1",
+    "express": "^4.19.2",
     "express-fileupload": "^1.5.2",
     "googleapis": "^156.0.0",
     "lucide-react": "^0.344.0",
