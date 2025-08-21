@@ -71,18 +71,19 @@ export class PhotoService {
         formData.append('guildId', guildId);
         formData.append('challengeId', challengeId.toString());
         
-        // Determina l'URL del server
-        const serverUrl = window.location.hostname === 'localhost' 
-          ? 'http://localhost:3000' 
-          : window.location.origin;
+        // In development, usa path relativo per sfruttare il proxy Vite
+        // In production, usa l'origin corrente
+        const apiUrl = window.location.hostname === 'localhost' 
+          ? '/api/upload-googledrive'
+          : `${window.location.origin}/api/upload-googledrive`;
         
-        console.log('🌐 Server URL:', serverUrl);
+        console.log('🌐 API URL:', apiUrl);
         
         // Invia al backend con timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 secondi timeout
         
-        const response = await fetch(`${serverUrl}/api/upload-googledrive`, {
+        const response = await fetch(apiUrl, {
           method: 'POST',
           body: formData,
           signal: controller.signal
@@ -397,14 +398,16 @@ export class PhotoService {
     // Test connessione Google Drive tramite server
     let googleDriveTest = false;
     try {
-      const serverUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:3000' 
-        : window.location.origin;
+      // In development, usa path relativo per sfruttare il proxy Vite
+      // In production, usa l'origin corrente
+      const apiUrl = window.location.hostname === 'localhost' 
+        ? '/api/test-googledrive'
+        : `${window.location.origin}/api/test-googledrive`;
         
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondi timeout
       
-      const response = await fetch(`${serverUrl}/api/test-googledrive`, {
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
