@@ -7,13 +7,11 @@
     "dev": "vite",
     "dev:full": "concurrently \"npm run dev\" \"vercel dev --listen 3000\"",
     "build": "vite build",
-    "vercel:dev": "npx vercel dev --listen 3000",
-    "dev:full": "concurrently \"npm run dev\" \"npm run vercel:dev\""
+    "vercel:dev": "vercel dev --listen 3000",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "server": "node server.js",
     "start": "node server.js",
-    "vercel:dev": "vercel dev --listen 3000",
     "deploy:vercel": "vercel --prod"
   },
   "dependencies": {
