@@ -62,7 +62,7 @@ function HomePage() {
                 
                 <div className="bg-blue-100 border border-blue-300 rounded-lg p-2 mb-4">
                   <p className="text-blue-800 text-xs font-mono">
-                    🔧 BUILD v5.0 - Supabase Integration + Token Refresh - {new Date().toLocaleString('it-IT')}
+                    🔧 BUILD v5.1 - Google Drive API + Vercel Routes - {new Date().toLocaleString('it-IT')}
                   </p>
                 </div>
                 
