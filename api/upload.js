@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       credentials: {
         type: "service_account",
         client_email: process.env.GOOGLE_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
         project_id: "your-project-id" // Questo può essere qualsiasi valore per Google Drive
       },
       scopes: ["https://www.googleapis.com/auth/drive.file"],
