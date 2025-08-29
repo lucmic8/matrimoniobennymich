@@ -1,9 +1,4 @@
 {
-  "build": {
-    "env": {
-      "GOOGLE_DRIVE_FOLDER_ID": "@GOOGLE_DRIVE_FOLDER_ID"
-    }
-  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/" }
