@@ -403,10 +403,15 @@ export class PhotoService {
       const apiUrl = window.location.hostname === 'localhost' 
         ? '/api/test-googledrive'
         : `${window.location.origin}/api/test-googledrive`;
+
+      console.log("API url: ");
+      console.log(apiUrl);
         
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondi timeout
       
+      console.log("Inizio chiamata");
+
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
@@ -416,6 +421,9 @@ export class PhotoService {
       });
       
       clearTimeout(timeoutId);
+
+      console.log("Risposta: ");
+      console.log(response);
       
       if (response.ok) {
         const result = await response.json();
