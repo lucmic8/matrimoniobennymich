@@ -423,6 +423,7 @@ export class PhotoService {
       }
     } catch (error) {
       console.log('⚠️ Test Google Drive fallito - server non disponibile');
+      console.log(error);
     }
     
     console.log('🔍 Test connessioni:', { supabase: supabaseTest, googledrive: googleDriveTest });
