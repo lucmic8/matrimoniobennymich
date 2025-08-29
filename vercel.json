@@ -1,7 +1,7 @@
 {
   "build": {
     "env": {
-      "GOOGLE_DRIVE_FOLDER_ID": "@GOOGLE_DRIVE_FOLDER_ID",
+      "GOOGLE_DRIVE_FOLDER_ID": "@GOOGLE_DRIVE_FOLDER_ID"
     }
   },
   "rewrites": [
