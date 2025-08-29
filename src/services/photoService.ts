@@ -426,9 +426,9 @@ export class PhotoService {
       console.log(response);
       
       if (response.ok) {
-        //const result = await response.json();
-        //googleDriveTest = result.success;
-        googleDriveTest = true;
+        const result = await response.json();
+        googleDriveTest = result.success;
+        //googleDriveTest = true;
       }
     } catch (error) {
       console.log('⚠️ Test Google Drive fallito - server non disponibile');
