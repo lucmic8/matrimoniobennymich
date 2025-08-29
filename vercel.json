@@ -1,8 +1,7 @@
 {
   "build": {
     "env": {
-      "GOOGLE_DRIVE_FOLDER_ID": "@google-drive-folder-id",
-      "GOOGLE_SERVICE_ACCOUNT_KEY": "@google-service-account-key"
+      "GOOGLE_DRIVE_FOLDER_ID": "@GOOGLE_DRIVE_FOLDER_ID",
     }
   },
   "rewrites": [
