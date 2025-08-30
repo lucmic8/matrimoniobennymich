@@ -14,56 +14,62 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log('📤 Richiesta upload Google Drive ricevuta su Vercel API');
-    
+    console.log("📤 Richiesta upload Google Drive ricevuta su Vercel API");
+
     // Parsing file dal form-data
     const form = formidable({ multiples: false });
     const [fields, files] = await form.parse(req);
 
     const file = files.file[0]; // il file caricato
-    
+
     if (!file) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        error: "Nessun file caricato" 
+        error: "Nessun file caricato",
       });
     }
 
-    console.log('📋 File ricevuto:', {
+    console.log("📋 File ricevuto:", {
       name: file.originalFilename,
       size: file.size,
-      mimetype: file.mimetype
+      mimetype: file.mimetype,
     });
 
-    // Verifica variabili d'ambiente
-    if (!process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY || !process.env.GOOGLE_DRIVE_FOLDER_ID) {
-      console.error('❌ Variabili d\'ambiente mancanti');
-      return res.status(500).json({ 
+    // ✅ Verifica variabili d'ambiente
+    if (
+      !process.env.GOOGLE_CLIENT_ID ||
+      !process.env.GOOGLE_CLIENT_SECRET ||
+      !process.env.GOOGLE_REFRESH_TOKEN ||
+      !process.env.GOOGLE_DRIVE_FOLDER_ID
+    ) {
+      console.error("❌ Variabili d'ambiente mancanti");
+      return res.status(500).json({
         success: false,
         error: "Configurazione Google Drive mancante",
-        details: "GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY o GOOGLE_DRIVE_FOLDER_ID non configurati"
+        details:
+          "GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN o GOOGLE_DRIVE_FOLDER_ID non configurati",
       });
     }
 
-    // Autenticazione con service account
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        type: "service_account",
-        client_email: process.env.GOOGLE_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        project_id: "your-project-id"
-      },
-      scopes: ["https://www.googleapis.com/auth/drive.file"],
+    // ✅ Autenticazione con OAuth2 (usa refresh token)
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
+
+    oauth2Client.setCredentials({
+      refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
     });
 
-    const drive = google.drive({ version: "v3", auth });
+    const drive = google.drive({ version: "v3", auth: oauth2Client });
 
     // Genera nome file unico
     const { guildId, challengeId } = fields;
     const fileExt = getFileExtension(file);
-    const fileName = `${guildId}_challenge_${challengeId}_${Date.now()}.${fileExt}`;
+    const fileName = `${guildId || "upload"}_challenge_${challengeId || "x"}_${Date.now()}.${fileExt}`;
 
-    console.log('📤 Caricamento su Google Drive...');
+    console.log("📤 Caricamento su Google Drive...");
 
     // Upload su Drive
     const response = await drive.files.create({
@@ -78,20 +84,20 @@ export default async function handler(req, res) {
       fields: "id, webViewLink, webContentLink",
     });
 
-    console.log('✅ Upload completato:', response.data.id);
+    console.log("✅ Upload completato:", response.data.id);
 
     // Rendi il file pubblico
     try {
       await drive.permissions.create({
         fileId: response.data.id,
         requestBody: {
-          role: 'reader',
-          type: 'anyone'
-        }
+          role: "reader",
+          type: "anyone",
+        },
       });
-      console.log('✅ File reso pubblico');
+      console.log("✅ File reso pubblico");
     } catch (permError) {
-      console.warn('⚠️ Impossibile rendere il file pubblico:', permError.message);
+      console.warn("⚠️ Impossibile rendere il file pubblico:", permError.message);
     }
 
     // Genera URL pubblico diretto
@@ -105,33 +111,32 @@ export default async function handler(req, res) {
       fileId: response.data.id,
       link: response.data.webViewLink,
     });
-
   } catch (err) {
     console.error("❌ Errore upload:", err);
-    return res.status(500).json({ 
+    return res.status(500).json({
       success: false,
-      error: "Upload failed", 
-      details: err.message 
+      error: "Upload failed",
+      details: err.message,
     });
   }
 }
 
 // Funzione helper per estensione file
 function getFileExtension(file) {
-  if (file.originalFilename && file.originalFilename.includes('.')) {
-    const ext = file.originalFilename.split('.').pop().toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+  if (file.originalFilename && file.originalFilename.includes(".")) {
+    const ext = file.originalFilename.split(".").pop().toLowerCase();
+    if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
       return ext;
     }
   }
-  
+
   const mimeToExt = {
-    'image/jpeg': 'jpg',
-    'image/jpg': 'jpg',
-    'image/png': 'png',
-    'image/gif': 'gif',
-    'image/webp': 'webp'
+    "image/jpeg": "jpg",
+    "image/jpg": "jpg",
+    "image/png": "png",
+    "image/gif": "gif",
+    "image/webp": "webp",
   };
-  
-  return mimeToExt[file.mimetype] || 'jpg';
+
+  return mimeToExt[file.mimetype] || "jpg";
 }
