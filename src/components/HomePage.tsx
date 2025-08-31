@@ -170,8 +170,6 @@ function HomePage() {
                         src={guild.image}
                         alt={guild.name}
                         className={`w-full h-full object-cover transition-transform duration-500 ${
-                          guild.id === 'sorapis' ? 'scale-90 group-hover:scale-100' :
-                          guild.id === 'antermoia' ? 'scale-90 group-hover:scale-100' :
                           'group-hover:scale-110'
                         } ${
                           guild.id === 'sorapis' ? 'object-top' :
