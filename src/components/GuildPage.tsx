@@ -388,7 +388,7 @@ function GuildPage() {
                     <div className="flex-grow">
                       <div className="flex items-center mb-3">
                         <span className="bg-pink-200/80 text-pink-800 px-3 py-1 rounded-full text-sm font-semibold mr-3 border border-pink-300">
-                          🥚 Easter Egg
+                          Prova 11
                         </span>
                         <div className="text-2xl mr-2">🥚</div>
                       </div>
