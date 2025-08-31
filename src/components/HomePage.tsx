@@ -64,12 +64,6 @@ function HomePage() {
                   <p className="text-blue-800 text-xs font-mono">
                     🔧 BUILD v5.1 - Supabase Integration + Token Refresh - {new Date().toLocaleString('it-IT')}
                   </p>
-                </div>
-                
-                <h2 className="text-2xl md:text-3xl font-semibold text-amber-800 mb-8">
-                  Nozze ad Alta Quota
-                </h2>
-                
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 max-w-3xl mx-auto border-2 border-amber-200 shadow-lg">
                   <p className="text-xl md:text-2xl text-amber-900 leading-relaxed">
                     Cari amici e parenti, abbiamo organizzato per voi alcune sfide.
