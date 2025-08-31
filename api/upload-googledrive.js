@@ -101,7 +101,8 @@ export default async function handler(req, res) {
     }
 
     // Genera URL pubblico diretto
-    const publicUrl = `https://drive.google.com/uc?id=${response.data.id}`;
+    //const publicUrl = `https://drive.google.com/uc?id=${response.data.id}`;
+    const publicUrl = `https://lh3.googleusercontent.com/d/${response.data.id}`;
 
     return res.status(200).json({
       success: true,
