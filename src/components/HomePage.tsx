@@ -172,8 +172,8 @@ function HomePage() {
                         className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ${
                           guild.id === 'sorapis' ? 'object-bottom' :
                           guild.id === 'marmolada' ? 'object-bottom' :
-                          guild.id === 'croda-da-lago' ? 'object-center scale-125' :
-                          guild.id === 'plan-de-corones' ? 'object-center scale-125' :
+                          guild.id === 'croda-da-lago' ? 'object-center' :
+                          guild.id === 'plan-de-corones' ? 'object-center' :
                           'object-center'
                         }`}
                       />
