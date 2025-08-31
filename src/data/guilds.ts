@@ -28,15 +28,6 @@ export const guilds: Guild[] = [
     color: 'from-pink-500 to-rose-600'
   },
   {
-    id: 'puez',
-    name: 'Puez',
-    subtitle: 'Cima dei Custodi del Silenzio',
-    description: 'Protettori della pace eterna delle alte cime',
-    fullDescription: 'Il gruppo del Puez-Odle, con le sue vette che superano i 3.000 metri, rappresenta la solennità e il rispetto per la natura selvaggia. Queste montagne, caratterizzate da un paesaggio lunare e da un silenzio quasi sacro, sono il rifugio perfetto per chi cerca la pace interiore. I membri di questa gilda sono i guardiani della tranquillità e della meditazione, capaci di trovare forza nel silenzio e saggezza nella solitudine.',
-    image: '/images/Puez.png',
-    color: 'from-gray-500 to-slate-600'
-  },
-  {
     id: 'tre-cime',
     name: 'Tre Cime di Lavaredo',
     subtitle: 'Cima dei Tre Picchi',
@@ -64,39 +55,39 @@ export const guilds: Guild[] = [
     color: 'from-indigo-500 to-purple-600'
   },
   {
-    id: 'monte-sole',
-    name: 'Monte Sole',
-    subtitle: 'Cima dei Guardiani del Sole',
-    description: 'Portatori di luce e calore alle terre montane',
-    fullDescription: 'Il Monte Sole, con i suoi 2.348 metri, è una montagna che vive di luce. Esposta al sole per la maggior parte della giornata, questa vetta è il simbolo dell\'energia positiva e della vitalità. Le sue pendici sono ricche di vita e i suoi panorami offrono sempre una prospettiva luminosa. I membri di questa gilda sono portatori di gioia e ottimismo, capaci di illuminare anche i giorni più bui con la loro energia contagiosa.',
-    image: '/images/MonteSole.png',
+    id: 'marmolada',
+    name: 'Marmolada',
+    subtitle: 'Cima della Regina delle Dolomiti',
+    description: 'Sovrani del ghiacciaio eterno e delle vette supreme',
+    fullDescription: 'La Marmolada, con i suoi 3.343 metri, è la vetta più alta delle Dolomiti e viene chiamata la "Regina delle Dolomiti". Il suo ghiacciaio, uno degli ultimi delle Alpi orientali, rappresenta la maestosità e la regalità. Questa montagna domina tutto il paesaggio dolomitico con la sua presenza imponente. I membri di questa gilda sono leader naturali, nobili d\'animo e capaci di guidare gli altri verso grandi traguardi, proprio come la Marmolada guida lo sguardo di chi ammira le Dolomiti.',
+    image: '/images/Marmolada.png',
     color: 'from-yellow-500 to-orange-600'
   },
   {
-    id: 'catinaccio',
-    name: 'Catinaccio',
-    subtitle: 'Cima delle Vette Rosate',
-    description: 'Nobili cavalieri delle montagne infuocate',
-    fullDescription: 'Il Catinaccio, con la sua vetta principale di 3.004 metri, è famoso in tutto il mondo per il fenomeno dell\'enrosadira, quando le sue pareti si tingono di un rosa intenso al tramonto. Secondo la leggenda, questo colore deriva dalle rose del giardino del Re Laurino. I membri di questa gilda sono nobili d\'animo, romantici e appassionati, capaci di vedere la bellezza in ogni momento e di trasformare la realtà in poesia.',
-    image: '/images/Catinaccio.png',
+    id: 'plan-de-corones',
+    name: 'Plan de Corones',
+    subtitle: 'Cima del Panorama Infinito',
+    description: 'Guardiani degli orizzonti sconfinati e delle vedute mozzafiato',
+    fullDescription: 'Il Plan de Corones, con i suoi 2.275 metri, è famoso per offrire uno dei panorami più spettacolari delle Alpi. Da questa vetta si possono ammirare oltre 400 cime alpine in un colpo d\'occhio, dalle Dolomiti alle Alpi Centrali. Questa montagna rappresenta la visione d\'insieme e la capacità di vedere il quadro completo. I membri di questa gilda sono visionari e strateghi, capaci di cogliere le connessioni tra le cose e di avere sempre una prospettiva ampia su ogni situazione.',
+    image: '/images/Plan de Corones.png',
     color: 'from-red-500 to-pink-600'
   },
   {
-    id: 'sella',
-    name: 'Sella',
-    subtitle: 'Cima delle Rocce Erranti',
-    description: 'Esploratori instancabili dei passi di montagna',
-    fullDescription: 'Il gruppo del Sella, con le sue vette che superano i 3.000 metri, è caratterizzato da un altopiano roccioso unico al mondo. Attraversato da numerosi passi e sentieri, questo massiccio è il crocevia delle Dolomiti. I membri di questa gilda sono esploratori nati, sempre in movimento, curiosi di scoprire nuovi percorsi e di collegare mondi diversi. Sono i mediatori naturali, capaci di trovare sempre una via di comunicazione.',
-    image: '/images/Sella.png',
+    id: 'croda-da-lago',
+    name: 'Croda da Lago',
+    subtitle: 'Cima dei Riflessi Dorati',
+    description: 'Custodi dei laghi alpini e delle acque specchiate',
+    fullDescription: 'La Croda da Lago, con i suoi 2.715 metri, domina il suggestivo Lago di Federa, creando uno dei paesaggi più romantici delle Dolomiti. Questa montagna è famosa per i suoi riflessi dorati che si specchiano nelle acque calme del lago sottostante, creando un\'atmosfera magica e contemplativa. I membri di questa gilda sono anime romantiche e riflessive, capaci di trovare bellezza nei dettagli e di creare momenti di pura poesia anche nelle situazioni più semplici.',
+    image: '/images/Croda da Lago.png',
     color: 'from-green-500 to-emerald-600'
   },
   {
-    id: 'pejo',
-    name: 'Pejo 3000',
+    id: 'cevedale',
+    name: 'Cevedale',
     subtitle: 'Cima delle Nevi Eterne',
     description: 'Custodi delle nevi perenni e dei ghiacciai sacri',
-    fullDescription: 'Il comprensorio del Pejo 3000, con vette che raggiungono i 3.000 metri nel gruppo dell\'Ortles-Cevedale, è il regno delle nevi eterne e dei ghiacciai. Questo ambiente estremo e puro rappresenta la resistenza e la perseveranza. I membri di questa gilda sono custodi delle tradizioni più antiche, resistenti alle difficoltà e capaci di mantenere la loro purezza d\'intenti anche nelle condizioni più avverse.',
-    image: '/images/Pejo3000.png',
+    fullDescription: 'Il Monte Cevedale, con i suoi 3.769 metri, è una delle vette più alte del gruppo Ortles-Cevedale e rappresenta la purezza delle nevi eterne. Circondato da ghiacciai e caratterizzato da un ambiente alpino estremo, questo monte simboleggia la resistenza e la perseveranza. I membri di questa gilda sono custodi delle tradizioni più antiche, resistenti alle difficoltà e capaci di mantenere la loro purezza d\'intenti anche nelle condizioni più avverse, proprio come le nevi perenni che resistono al tempo.',
+    image: '/images/Cevedale.png',
     color: 'from-blue-500 to-cyan-600'
   }
 ];

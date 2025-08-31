@@ -106,18 +106,17 @@ Questo approccio risolve:
 - **Metadati**: Supabase (database relazionale)
 - **Fallback**: LocalStorage (offline)
 
-## 🎯 Le 10 Gilde
+## 🎯 Le 9 Gilde
 
 1. **Sorapis** - Cima del Lago di Cristallo
 2. **Antermoia** - Cima delle Nebbie Rosate
-3. **Puez** - Cima dei Custodi del Silenzio
-4. **Tre Cime di Lavaredo** - Cima dei Tre Picchi
-5. **Sassolungo** - Cima della Pietra Antica
-6. **Piz Boè** - Cima del Picco del Tuono
-7. **Monte Sole** - Cima dei Guardiani del Sole
-8. **Catinaccio** - Cima delle Vette Rosate
-9. **Sella** - Cima delle Rocce Erranti
-10. **Pejo 3000** - Cima delle Nevi Eterne
+3. **Tre Cime di Lavaredo** - Cima dei Tre Picchi
+4. **Sassolungo** - Cima della Pietra Antica
+5. **Piz Boè** - Cima del Picco del Tuono
+6. **Marmolada** - Cima della Regina delle Dolomiti
+7. **Plan de Corones** - Cima del Panorama Infinito
+8. **Croda da Lago** - Cima dei Riflessi Dorati
+9. **Cevedale** - Cima delle Nevi Eterne
 
 ## 📸 Le 15 Sfide
 
