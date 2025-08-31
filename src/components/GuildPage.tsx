@@ -233,8 +233,12 @@ function GuildPage() {
               <div className="flex items-center mb-6">
                 <Mountain className="h-12 w-12 text-amber-700 mr-4" />
                 <div>
-                  <h1 className="text-4xl md:text-5xl font-bold text-amber-900 mb-2">
+                  <h1 
+                    className="text-4xl md:text-5xl font-bold text-amber-900 mb-2 cursor-pointer select-none"
+                    onClick={handleSorapisTitleTap}
+                  >
                     {guild.name}
+                  </h1>
                   </h1>
                   <h2 className="text-xl md:text-2xl text-amber-700 font-semibold">
                     {guild.subtitle}
@@ -257,10 +261,7 @@ function GuildPage() {
                     className="bg-gradient-to-r from-amber-500 to-yellow-500 h-3 rounded-full transition-all duration-500 shadow-sm"
                     style={{ width: `${completionPercentage}%` }}
                   ></div>
-                <h1 
-                  className="text-4xl md:text-5xl font-bold text-amber-900 mb-2 cursor-pointer select-none"
-                  onClick={handleSorapisTitleTap}
-                >
+                </div>
                 <p className="text-sm text-amber-700 mt-2">
                   {completionPercentage === 100 ? '🏆 Sfida Completata! Siete degni della gloria eterna!' : 
                    completionPercentage >= 50 ? '⚔️ Ottimo lavoro, continuate così!' : 
