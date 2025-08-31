@@ -199,7 +199,9 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
 
           <div className="mb-4">
             <p className="text-amber-800 font-medium mb-2">Prova #{challengeId}</p>
-            <p className="text-amber-700 text-sm">{challengeTitle}</p>
+            <p className="text-amber-700 text-sm">
+              {challengeId === 999 ? '🥚 Easter Egg Segreto' : challengeTitle}
+            </p>
           </div>
 
           {error && (
