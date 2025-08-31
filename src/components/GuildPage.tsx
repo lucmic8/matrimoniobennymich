@@ -370,7 +370,7 @@ function GuildPage() {
 
               {/* Easter Egg Challenge - Solo per Sorapis */}
               {guildId === 'sorapis' && easterEggUnlocked && (
-                <div className="bg-gradient-to-br from-purple-100/80 to-pink-100/80 rounded-2xl p-6 border-2 border-pink-300 backdrop-blur-sm shadow-lg transition-all duration-500 animate-pulse">
+                <div className="bg-gradient-to-br from-purple-100/80 to-pink-100/80 rounded-2xl p-6 border-2 border-pink-300 backdrop-blur-sm shadow-lg transition-all duration-500" style={{ animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}>
                   <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0">
                       <button
@@ -400,7 +400,7 @@ function GuildPage() {
                       </h4>
                       
                       <p className="text-pink-800 mb-4 leading-relaxed">
-                        Fai una foto al vero KILLER della festa mentre indica con la mano il numero di quante se n'è fatte in giornata.
+                        Fai una foto al vero KILLER della festa, mentre indica con la mano il numero di conquiste 💘 fatte in giornata
                       </p>
                       
                       <div className="flex flex-wrap gap-2 mb-4">
