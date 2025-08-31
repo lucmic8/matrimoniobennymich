@@ -33,7 +33,7 @@ export const guilds: Guild[] = [
     subtitle: 'Cima dei Tre Picchi',
     description: 'Valorosi difensori delle tre torri di pietra',
     fullDescription: 'Le Tre Cime di Lavaredo, con la Cima Grande che raggiunge i 2.999 metri, sono il simbolo più iconico delle Dolomiti. Queste tre torri di roccia, che si ergono come sentinelle contro il cielo, rappresentano la forza, il coraggio e l\'unità. I membri di questa gilda sono guerrieri valorosi che sanno che insieme possono superare qualsiasi sfida, proprio come le tre cime che da millenni resistono alle intemperie unite nella loro maestosità.',
-    image: '/images/TreCimeLavaredo.png',
+    image: '/images/TreCime.jpeg',
     color: 'from-orange-500 to-red-600'
   },
   {
@@ -51,7 +51,7 @@ export const guilds: Guild[] = [
     subtitle: 'Cima del Picco del Tuono',
     description: 'Guerrieri delle tempeste e dominatori dei cieli',
     fullDescription: 'Il Piz Boè, con i suoi 3.152 metri, è la vetta più alta del gruppo del Sella. Spesso avvolto dalle nuvole e battuto dai venti, questo monte è il regno delle tempeste e dei fenomeni atmosferici più spettacolari. I guerrieri di questa gilda sono coraggiosi affrontatori delle avversità, capaci di trovare la loro forza nelle sfide più difficili e di trasformare ogni tempesta in un\'opportunità di crescita.',
-    image: '/images/PizBoe.png',
+    image: '/images/Piz Boè.png',
     color: 'from-indigo-500 to-purple-600'
   },
   {

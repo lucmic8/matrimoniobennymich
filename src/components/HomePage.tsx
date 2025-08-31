@@ -169,7 +169,13 @@ function HomePage() {
                       <img
                         src={guild.image}
                         alt={guild.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ${
+                          guild.id === 'sorapis' ? 'object-bottom' :
+                          guild.id === 'marmolada' ? 'object-bottom' :
+                          guild.id === 'croda-da-lago' ? 'object-center scale-125' :
+                          guild.id === 'plan-de-corones' ? 'object-center scale-125' :
+                          'object-center'
+                        }`}
                       />
                       <div className="absolute top-4 right-4">
                         <div className="bg-white/80 backdrop-blur-sm rounded-full p-2 border border-amber-300">
