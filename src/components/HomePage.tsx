@@ -96,8 +96,8 @@ function HomePage() {
             </div>
             
             <div className="grid md:grid-cols-3 gap-8">
-              <div className="bg-white/70 rounded-2xl p-8 border-2 border-blue-200 shadow-lg">
-                <Mountain className="h-12 w-12 text-blue-700 mb-4" />
+              <div className="bg-white/70 rounded-2xl p-8 border-2 border-green-400 shadow-lg">
+                <Mountain className="h-12 w-12 text-green-700 mb-4" />
                 <h4 className="text-xl font-bold text-amber-900 mb-4">Le Cime</h4>
                 <p className="text-amber-800">Ogni tavolo appartiene a una Cima delle Dolomiti. Unite le forze per la gloria!</p>
               </div>
@@ -108,8 +108,8 @@ function HomePage() {
                 <p className="text-amber-800">10 missioni fotografiche epiche vi aspettano durante il banchetto!</p>
               </div>
               
-              <div className="bg-white/70 rounded-2xl p-8 border-2 border-amber-300 shadow-lg">
-                <Trophy className="h-12 w-12 text-amber-700 mb-4" />
+              <div className="bg-white/70 rounded-2xl p-8 border-2 border-yellow-400 shadow-lg">
+                <Trophy className="h-12 w-12 text-yellow-600 mb-4" />
                 <h4 className="text-xl font-bold text-amber-900 mb-4">La Gloria</h4>
                 <p className="text-amber-800">Completate tutte le prove per scalare la vetta della gloria eterna!</p>
               </div>
