@@ -176,6 +176,13 @@ function HomePage() {
                           guild.id === 'plan-de-corones' ? 'object-center' :
                           'object-center'
                         }`}
+                        style={{
+                          objectPosition: guild.id === 'sorapis' ? 'center 25%' :
+                                        guild.id === 'tre-cime' ? 'center 25%' :
+                                        guild.id === 'marmolada' ? 'center 25%' :
+                                        guild.id === 'piz-boe' ? 'center 25%' :
+                                        undefined
+                        }}
                       />
                       <div className="absolute top-4 right-4">
                         <div className="bg-white/80 backdrop-blur-sm rounded-full p-2 border border-amber-300">
