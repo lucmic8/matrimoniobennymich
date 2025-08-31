@@ -97,9 +97,9 @@ function HomePage() {
             
             <div className="grid md:grid-cols-3 gap-8">
               <div className="bg-white/70 rounded-2xl p-8 border-2 border-blue-200 shadow-lg">
-                <Shield className="h-12 w-12 text-blue-700 mb-4" />
+                <Mountain className="h-12 w-12 text-blue-700 mb-4" />
                 <h4 className="text-xl font-bold text-amber-900 mb-4">Le Cime</h4>
-                <p className="text-amber-800">Ogni tavolo appartiene a una Cima delle Grandi Montagne. Unite le forze per la gloria!</p>
+                <p className="text-amber-800">Ogni tavolo appartiene a una Cima delle Dolomiti. Unite le forze per la gloria!</p>
               </div>
               
               <div className="bg-white/70 rounded-2xl p-8 border-2 border-purple-200 shadow-lg">
@@ -131,9 +131,7 @@ function HomePage() {
                 Usate il link <span className="text-cyan-700 font-semibold">"Carica la Prova"</span> presente sotto ogni missione.
               </p>
               <p className="text-lg text-amber-800">
-                Tutti gli scatti verranno caricati in una galleria condivisa del 
-                <span className="text-cyan-700 font-semibold"> Regno della Nuvola</span>, 
-                per essere ammirati nei secoli a venire.
+                Tutti gli scatti verranno caricati in una galleria condivisa per essere ammirate da tutti.
               </p>
             </div>
           </div>
@@ -236,8 +234,8 @@ function HomePage() {
                   Le prove sono pensate per <span className="text-pink-700 font-semibold">divertire, unire e far ridere</span>.
                 </p>
                 <p className="text-xl text-amber-900">
-                  Ogni cima rappresenta un tavolo. Clicca sulla tua per accedere alla pagina delle missioni. 
-                  Che siate elfi burloni o cavalieri seri, la vostra <span className="text-pink-700 font-bold">creatività</span> sarà l'arma più potente.
+                  Grazie a tutti della vostra presenza e speriamo che vi divertiate in questa avventura fotografica tra le nostre amate Dolomiti. 
+                  La vostra <span className="text-pink-700 font-bold">creatività</span> e il vostro spirito di squadra renderanno questa giornata indimenticabile.
                 </p>
               </div>
               
