@@ -249,39 +249,6 @@ function GuildPage() {
               </div>
             </div>
           </div>
-            {/* Dropbox Configuration Button */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between">
-                <span className="text-amber-700 font-semibold">Storage e Sincronizzazione</span>
-                <div className="flex gap-2">
-                  <div className={`px-3 py-1 rounded-lg text-xs font-medium ${
-                    supabaseConfigured 
-                      ? 'bg-green-100 text-green-800 border border-green-300'
-                      : 'bg-red-100 text-red-800 border border-red-300'
-                  }`}>
-                    {supabaseConfigured ? '✅ Supabase' : '❌ Supabase'}
-                  </div>
-                  <div className={`px-3 py-1 rounded-lg text-xs font-medium ${
-                    googleDriveConfigured 
-                      ? 'bg-green-100 text-green-800 border border-green-300'
-                      : 'bg-red-100 text-red-800 border border-red-300'
-                  }`}>
-                    <Cloud className="h-3 w-3 mr-1 inline" />
-                    {googleDriveConfigured ? '✅ Google Drive' : '❌ Google Drive'}
-                  </div>
-                </div>
-              </div>
-              <p className="text-sm text-amber-600 mt-1">
-                {supabaseConfigured && googleDriveConfigured
-                  ? '✅ Sincronizzazione completa attiva: Supabase (database) + Google Drive (server-side storage)'
-                  : supabaseConfigured
-                  ? '✅ Database Supabase attivo. Google Drive gestito lato server'
-                  : googleDriveConfigured
-                  ? '⚠️ Solo Google Drive server-side attivo. Configurare Supabase per sincronizzazione completa'
-                  : '❌ Storage gestito lato server. Configurare Supabase per sincronizzazione completa'
-                }
-              </p>
-            </div>
         </div>
 
         {/* Challenges Section */}
