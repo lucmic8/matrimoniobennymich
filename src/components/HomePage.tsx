@@ -165,7 +165,7 @@ function HomePage() {
                   onClick={() => handleGuildSelect(guild.id)}
                 >
                   <div className="relative bg-white/80 rounded-2xl overflow-hidden border-2 border-amber-200 group-hover:scale-105 transition-transform duration-300 group-hover:border-amber-400 shadow-lg group-hover:shadow-xl">
-                    <div className="relative h-48 overflow-hidden">
+                    <div className="relative h-64 overflow-hidden">
                       <img
                         src={guild.image}
                         alt={guild.name}
