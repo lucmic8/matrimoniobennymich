@@ -5,7 +5,6 @@ import {
   Camera, 
   Trophy, 
   Scroll, 
-  Shield, 
   Crown,
   Upload,
   Star,
@@ -60,24 +59,6 @@ function HomePage() {
                   </span>
                 </h1>
                 
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 max-w-3xl mx-auto border-2 border-amber-200 shadow-lg">
-                  <p className="text-xl md:text-2xl text-amber-900 leading-relaxed">
-                    Cari amici e parenti, abbiamo organizzato per voi alcune sfide.
-                    <br />
-                    Trovate la vostra cima e...che vinca il miglior tavolo!
-                    <br />
-                    <span className="text-amber-800 font-bold">Completate le missioni fotografiche per la gloria!</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-                <div className="bg-blue-100 border border-blue-300 rounded-lg p-2 mb-4">
-                  <p className="text-blue-800 text-xs font-mono">
-                    🔧 BUILD v5.1 - Supabase Integration + Token Refresh - {new Date().toLocaleString('it-IT')}
-                  </p>
-                </div>
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 max-w-3xl mx-auto border-2 border-amber-200 shadow-lg">
                   <p className="text-xl md:text-2xl text-amber-900 leading-relaxed">
                     Cari amici e parenti, abbiamo organizzato per voi alcune sfide.
