@@ -238,20 +238,6 @@ function HomePage() {
                   La vostra <span className="text-pink-700 font-bold">creatività</span> e il vostro spirito di squadra renderanno questa giornata indimenticabile.
                 </p>
               </div>
-              
-              <div className="bg-white/70 rounded-2xl p-6 border-2 border-blue-200 shadow-lg">
-                <p className="text-lg text-amber-900 mb-4">
-                  Usate gli hashtag ufficiali per condividere sui regni sociali:
-                </p>
-                <div className="flex flex-wrap justify-center gap-4">
-                  <span className="bg-blue-200/80 text-blue-800 px-4 py-2 rounded-full font-semibold border border-blue-300">
-                    #SfidaAllUltimaCima2025
-                  </span>
-                  <span className="bg-pink-200/80 text-pink-800 px-4 py-2 rounded-full font-semibold border border-pink-300">
-                    #CimaDelMioCuore
-                  </span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
