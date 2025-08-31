@@ -239,7 +239,6 @@ function GuildPage() {
                   >
                     {guild.name}
                   </h1>
-                  </h1>
                   <h2 className="text-xl md:text-2xl text-amber-700 font-semibold">
                     {guild.subtitle}
                   </h2>
@@ -368,83 +367,6 @@ function GuildPage() {
                   </div>
                 </div>
               ))}
-
-              {/* Easter Egg Challenge - Solo per Sorapis */}
-              {guildId === 'sorapis' && easterEggUnlocked && (
-                <div className="bg-gradient-to-br from-purple-100/80 to-pink-100/80 rounded-2xl p-6 border-2 border-pink-300 backdrop-blur-sm shadow-lg transition-all duration-500 animate-pulse">
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      <button
-                        onClick={() => toggleChallenge(999)} // ID speciale per easter egg
-                        className="transition-colors duration-200"
-                      >
-                        {completedChallenges.has(999) ? (
-                          <CheckCircle className="h-8 w-8 text-green-600" />
-                        ) : (
-                          <Circle className="h-8 w-8 text-pink-600 hover:text-pink-700" />
-                        )}
-                      </button>
-                    </div>
-                    
-                    <div className="flex-grow">
-                      <div className="flex items-center mb-3">
-                        <span className="bg-pink-200/80 text-pink-800 px-3 py-1 rounded-full text-sm font-semibold mr-3 border border-pink-300">
-                          🥚 Easter Egg
-                        </span>
-                        <div className="text-2xl mr-2">🥚</div>
-                      </div>
-                      
-                      <h4 className={`text-xl font-bold mb-3 transition-colors ${
-                        completedChallenges.has(999) ? 'text-green-700' : 'text-pink-800'
-                      }`}>
-                        Easter Egg
-                      </h4>
-                      
-                      <p className="text-pink-800 mb-4 leading-relaxed">
-                        Fai una foto al vero KILLER della festa mentre indica con la mano il numero di quante se n'è fatte in giornata.
-                      </p>
-                      
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="bg-purple-200/80 text-purple-800 px-2 py-1 rounded text-xs border border-purple-300">
-                          Segreto
-                        </span>
-                        <span className="bg-purple-200/80 text-purple-800 px-2 py-1 rounded text-xs border border-purple-300">
-                          Esclusivo
-                        </span>
-                        <span className="bg-purple-200/80 text-purple-800 px-2 py-1 rounded text-xs border border-purple-300">
-                          Sorapis
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center text-pink-700 text-sm">
-                          <Star className="h-4 w-4 mr-1" />
-                          <span className="font-medium">Difficoltà: Leggendaria</span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          {challengePhotos.has(999) && (
-                            <div className="bg-green-100 rounded-full p-1 border border-green-300">
-                              <Camera className="h-4 w-4 text-green-600" />
-                            </div>
-                          )}
-                          <button 
-                            onClick={() => setUploadingChallenge(999)}
-                            className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center text-sm font-medium shadow-md hover:shadow-lg ${
-                              challengePhotos.has(999)
-                                ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white'
-                                : 'bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white'
-                            }`}
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            {challengePhotos.has(999) ? 'Gestisci Foto' : 'Carica Easter Egg'}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Victory Message */}
