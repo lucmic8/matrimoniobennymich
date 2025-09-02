@@ -150,6 +150,12 @@ function HomePage() {
                   }`}
                   style={{ transitionDelay: `${index * 100}ms` }}
                   onClick={() => handleGuildSelect(guild.id)}
+                  onContextMenu={(e) => e.preventDefault()}
+                  onTouchStart={(e) => {
+                    // Previene il menu contestuale su iOS
+                    e.currentTarget.style.webkitTouchCallout = 'none';
+                    e.currentTarget.style.webkitUserSelect = 'none';
+                  }}
                 >
                   <div className="relative bg-white/80 rounded-2xl overflow-hidden border-2 border-amber-200 group-hover:scale-105 transition-transform duration-300 group-hover:border-amber-400 shadow-lg group-hover:shadow-xl">
                     <div className="relative aspect-[4/3] w-full overflow-hidden">
@@ -160,6 +166,18 @@ function HomePage() {
                           'group-hover:scale-110'
                         }`}
                         loading="lazy"
+                        draggable={false}
+                        onContextMenu={(e) => e.preventDefault()}
+                        onTouchStart={(e) => {
+                          // Previene il menu contestuale specifico per l'immagine
+                          e.preventDefault();
+                        }}
+                        style={{
+                          WebkitTouchCallout: 'none',
+                          WebkitUserSelect: 'none',
+                          userSelect: 'none',
+                          pointerEvents: 'none' // L'immagine non intercetta i touch events
+                        }}
                         onError={(e) => {
                           console.warn(`Errore caricamento immagine per ${guild.name}`);
                           // Fallback a un'immagine placeholder
