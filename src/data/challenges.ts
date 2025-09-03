@@ -27,11 +27,11 @@ export const challenges: Challenge[] = [
   },
   {
     id: 3,
-    title: 'Il Selfie Impossibile',
-    description: 'Scattate un selfie di gruppo dove TUTTI i membri della Cima sono visibili e sorridenti. Nessuno può essere tagliato fuori dall\'inquadratura. La sfida è nella coordinazione!',
-    icon: '🤳',
-    difficulty: 'Difficile',
-    tags: ['Selfie', 'Coordinazione', 'Gruppo']
+    title: 'Il Relax del Montanaro',
+    description: 'Dopo una lunga passeggiata in montagna, ogni scalatore ha bisogno di riposo! Immortalate il membro della vostra Cima nella posa più rilassata e buffa possibile: chi si slaccia le scarpe, chi si massaggia i piedi, chi si stende sulla sedia come se fosse un rifugio alpino. Mostrate il vero spirito del riposo montano!',
+    icon: '😴',
+    difficulty: 'Facile',
+    tags: ['Relax', 'Divertimento', 'Riposo']
   },
   {
     id: 4,
