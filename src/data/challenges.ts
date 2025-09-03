@@ -53,7 +53,6 @@ export const challenges: Challenge[] = [
     id: 6,
     title: 'La Bussola Perduta',
     description: 'In montagna è facile perdere l\'orientamento! Scattate una foto di gruppo mentre indicate tutti direzioni diverse con pose esilaranti, come se steste cercando di trovare il sentiero giusto. Chi punta a nord? Chi a sud? Il caos dell\'orientamento montano!',
-    image: '/images/indicazioni.jpeg',
     icon: '🧭',
     difficulty: 'Facile',
     tags: ['Orientamento', 'Divertimento', 'Gruppo']
