@@ -226,11 +226,11 @@ function HomePage() {
             <div className="space-y-6">
               <div className="bg-white/70 rounded-2xl p-8 border-2 border-purple-200 shadow-lg">
                 <div className="flex items-center justify-center mb-6">
-                  <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-pink-300 shadow-lg bg-gradient-to-br from-pink-200/80 to-purple-200/80">
+                  <div className="w-44 h-44 rounded-full overflow-hidden border-4 border-pink-300 shadow-lg bg-gradient-to-br from-pink-200/80 to-purple-200/80">
                     <img
                       src="/images/FotoNoteFinalipng.png"
                       alt="Note Finali"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover object-[center_60%]"
                     />
                   </div>
                 </div>
