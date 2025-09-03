@@ -94,7 +94,7 @@ export const challenges: Challenge[] = [
     id: 10,
     title: 'L\'Eredità Eterna',
     description: 'Create una foto finale che rappresenti lo spirito della vostra Cima e che possa essere ricordata per sempre. Usate tutta la vostra creatività per lasciare un segno indelebile nella storia del matrimonio!',
-    image: '/images/eredita.jpeg',
+    image: '/images/finale.jpeg',
     icon: '✨',
     difficulty: 'Media',
     tags: ['Creatività', 'Memoria', 'Finale']
