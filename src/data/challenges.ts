@@ -27,19 +27,19 @@ export const challenges: Challenge[] = [
   },
   {
     id: 3,
-    title: 'Il Momento Romantico',
-    description: 'Catturate un momento di pura tenerezza tra gli sposi o tra una coppia della vostra cima. L\'obiettivo è immortalare l\'amore in tutta la sua bellezza naturale, come le Dolomiti al tramonto.',
-    icon: '💕',
-    difficulty: 'Media',
-    tags: ['Romance', 'Emozioni', 'Coppia']
-  },
-  {
-    id: 4,
     title: 'L\'Imitazione dello Sposo/Sposa',
     description: 'Ogni invitato o gruppo deve imitare una posa iconica, un\'espressione facciale buffa o una caratteristica distintiva degli sposi. Possono essere ispirati da foto evocative, aneddoti raccontati, o semplicemente dalla loro personalità.',
     icon: '🎭',
     difficulty: 'Media',
     tags: ['Imitazione', 'Divertimento', 'Creatività']
+  },
+  {
+    id: 4,
+    title: 'Il Momento Romantico',
+    description: 'Catturate un momento di pura tenerezza tra gli sposi o tra una coppia della vostra cima. L\'obiettivo è immortalare l\'amore in tutta la sua bellezza naturale, come le Dolomiti al tramonto.',
+    icon: '💕',
+    difficulty: 'Media',
+    tags: ['Romance', 'Emozioni', 'Coppia']
   },
   {
     id: 5,
