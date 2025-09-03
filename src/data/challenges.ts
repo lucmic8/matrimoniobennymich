@@ -27,14 +27,6 @@ export const challenges: Challenge[] = [
   },
   {
     id: 3,
-    title: 'Il Relax del Montanaro',
-    description: 'Dopo una lunga passeggiata in montagna, ogni scalatore ha bisogno di riposo! Immortalate il membro della vostra Cima nella posa più rilassata e buffa possibile: chi si slaccia le scarpe, chi si massaggia i piedi, chi si stende sulla sedia come se fosse un rifugio alpino. Mostrate il vero spirito del riposo montano!',
-    icon: '😴',
-    difficulty: 'Facile',
-    tags: ['Relax', 'Divertimento', 'Riposo']
-  },
-  {
-    id: 4,
     title: 'Il Momento Romantico',
     description: 'Catturate un momento di pura tenerezza tra gli sposi o tra una coppia della vostra cima. L\'obiettivo è immortalare l\'amore in tutta la sua bellezza naturale, come le Dolomiti al tramonto.',
     icon: '💕',
@@ -42,7 +34,7 @@ export const challenges: Challenge[] = [
     tags: ['Romance', 'Emozioni', 'Coppia']
   },
   {
-    id: 5,
+    id: 4,
     title: 'L\'Imitazione dello Sposo/Sposa',
     description: 'Ogni invitato o gruppo deve imitare una posa iconica, un\'espressione facciale buffa o una caratteristica distintiva degli sposi. Possono essere ispirati da foto evocative, aneddoti raccontati, o semplicemente dalla loro personalità.',
     icon: '🎭',
@@ -50,7 +42,7 @@ export const challenges: Challenge[] = [
     tags: ['Imitazione', 'Divertimento', 'Creatività']
   },
   {
-    id: 6,
+    id: 5,
     title: 'La Bussola Perduta',
     description: 'In montagna è facile perdere l\'orientamento! Scattate una foto di gruppo mentre indicate tutti direzioni diverse con pose esilaranti, come se steste cercando di trovare il sentiero giusto. Chi punta a nord? Chi a sud? Il caos dell\'orientamento montano!',
     icon: '🧭',
@@ -58,12 +50,20 @@ export const challenges: Challenge[] = [
     tags: ['Orientamento', 'Divertimento', 'Gruppo']
   },
   {
-    id: 7,
+    id: 6,
     title: 'Il Freddo Improvviso',
     description: 'In montagna il tempo può cambiare all\'improvviso! Individuate il membro più preparato e attrezzato del vostro tavolo e immortalatelo mentre mostra la sua attrezzatura da montagna (giacca, sciarpa, cappello, o qualsiasi cosa abbia portato per il freddo).',
     icon: '🌨️',
     difficulty: 'Facile',
     tags: ['Attrezzatura', 'Preparazione', 'Freddo']
+  },
+  {
+    id: 7,
+    title: 'Il Relax del Montanaro',
+    description: 'Dopo una lunga passeggiata in montagna, ogni scalatore ha bisogno di riposo! Immortalate il componente della vostra Cima che incarna meglio il relax, sorpreso in una posizione di totale tranquillità.',
+    icon: '😴',
+    difficulty: 'Facile',
+    tags: ['Relax', 'Divertimento', 'Riposo']
   },
   {
     id: 8,
