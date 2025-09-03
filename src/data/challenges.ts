@@ -2,6 +2,7 @@ export interface Challenge {
   id: number;
   title: string;
   description: string;
+  image?: string;
   icon: string;
   difficulty: 'Facile' | 'Media' | 'Difficile';
   tags: string[];
@@ -63,6 +64,8 @@ export const challenges: Challenge[] = [
         </div>
       </div>
     ),
+    description: 'In montagna è facile perdere l\'orientamento! Scattate una foto di gruppo mentre indicate tutti direzioni diverse con pose esilaranti, come se steste cercando di trovare il sentiero giusto. Chi punta a nord? Chi a sud? Il caos dell\'orientamento montano!',
+    image: '/images/indicazioni.jpeg',
     icon: '🧭',
     difficulty: 'Facile',
     tags: ['Orientamento', 'Divertimento', 'Gruppo']

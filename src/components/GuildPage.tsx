@@ -327,6 +327,16 @@ function GuildPage() {
                         {challenge.description}
                       </p>
                       
+                      {challenge.image && (
+                        <div className="flex justify-center mb-4">
+                          <img 
+                            src={challenge.image} 
+                            alt={`Esempio per ${challenge.title}`}
+                            className="max-w-full h-auto rounded-lg border-2 border-amber-300 shadow-md max-h-48 object-contain"
+                          />
+                        </div>
+                      )}
+                      
                       <div className="flex flex-wrap gap-2 mb-4">
                         {challenge.tags.map((tag, tagIndex) => (
                           <span
