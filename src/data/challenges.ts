@@ -43,26 +43,26 @@ export const challenges: Challenge[] = [
   {
     id: 5,
     title: 'L\'Imitazione dello Sposo/Sposa',
-    description: 'Ogni invitato o gruppo deve imitare una posa iconica, un\'espressione facciale buffa o una caratteristica distintiva degli sposi. Possono essere ispirati da foto proiettate, aneddoti raccontati, o semplicemente dalla loro personalità.',
+    description: 'Ogni invitato o gruppo deve imitare una posa iconica, un\'espressione facciale buffa o una caratteristica distintiva degli sposi. Possono essere ispirati da foto evocative, aneddoti raccontati, o semplicemente dalla loro personalità.',
     icon: '🎭',
     difficulty: 'Media',
     tags: ['Imitazione', 'Divertimento', 'Creatività']
   },
   {
     id: 6,
-    title: 'La Reazione al Discorso "Noioso"',
-    description: 'Gli invitati devono scattare una foto di gruppo mentre mimano reazioni esagerate e divertenti a un discorso "noioso": sguardi assonnati, sbadigli plateali, occhi al cielo, o qualcuno che cerca di fuggire furtivamente.',
-    icon: '😴',
+    title: 'La Bussola Perduta',
+    description: 'In montagna è facile perdere l\'orientamento! Scattate una foto di gruppo mentre indicate tutti direzioni diverse con pose esilaranti, come se steste cercando di trovare il sentiero giusto. Chi punta a nord? Chi a sud? Il caos dell\'orientamento montano!',
+    icon: '🧭',
     difficulty: 'Facile',
-    tags: ['Recitazione', 'Divertimento', 'Gruppo']
+    tags: ['Orientamento', 'Divertimento', 'Gruppo']
   },
   {
     id: 7,
-    title: 'Il Momento Culinario',
-    description: 'Immortalate il momento più divertente legato al cibo: qualcuno che assaggia un piatto particolare, una reazione buffa a un sapore, o il momento in cui qualcuno si accorge che il piatto è finito!',
-    icon: '🍴',
+    title: 'Il Meteo Imprevedibile',
+    description: 'In montagna il tempo può cambiare all\'improvviso! Individuate il membro più preparato e attrezzato del vostro tavolo e immortalatelo mentre mostra la sua attrezzatura da montagna (giacca, sciarpa, cappello, o qualsiasi cosa abbia portato per il freddo).',
+    icon: '🌨️',
     difficulty: 'Facile',
-    tags: ['Cibo', 'Reazioni', 'Spontaneità']
+    tags: ['Attrezzatura', 'Preparazione', 'Meteo']
   },
   {
     id: 8,
