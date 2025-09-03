@@ -52,18 +52,6 @@ export const challenges: Challenge[] = [
   {
     id: 6,
     title: 'La Bussola Perduta',
-    description: (
-      <div className="space-y-3">
-        <p>In montagna è facile perdere l'orientamento! Scattate una foto di gruppo mentre indicate tutti direzioni diverse con pose esilaranti, come se steste cercando di trovare il sentiero giusto. Chi punta a nord? Chi a sud? Il caos dell'orientamento montano!</p>
-        <div className="flex justify-center">
-          <img 
-            src="/images/indicazioni.jpeg" 
-            alt="Esempio di indicazioni montane" 
-            className="max-w-full h-auto rounded-lg border-2 border-amber-300 shadow-md max-h-48 object-contain"
-          />
-        </div>
-      </div>
-    ),
     description: 'In montagna è facile perdere l\'orientamento! Scattate una foto di gruppo mentre indicate tutti direzioni diverse con pose esilaranti, come se steste cercando di trovare il sentiero giusto. Chi punta a nord? Chi a sud? Il caos dell\'orientamento montano!',
     image: '/images/indicazioni.jpeg',
     icon: '🧭',
