@@ -332,7 +332,7 @@ function GuildPage() {
                           <img 
                             src={challenge.image} 
                             alt={`Esempio per ${challenge.title}`}
-                            className="max-w-full h-auto rounded-lg border-2 border-amber-300 shadow-md max-h-48 object-cover"
+                            className="w-full max-w-md h-48 rounded-lg border-2 border-amber-300 shadow-md object-cover"
                           />
                         </div>
                       )}
