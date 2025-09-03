@@ -225,10 +225,14 @@ function HomePage() {
             
             <div className="space-y-6">
               <div className="bg-white/70 rounded-2xl p-8 border-2 border-purple-200 shadow-lg">
-                <div className="flex items-center justify-center mb-4">
-                  <Heart className="h-6 w-6 text-pink-700 mr-2" />
-                  <Users className="h-6 w-6 text-pink-700" />
-                  <Heart className="h-6 w-6 text-pink-700 ml-2" />
+                <div className="flex items-center justify-center mb-6">
+                  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-pink-300 shadow-lg bg-gradient-to-br from-pink-200/80 to-purple-200/80">
+                    <img
+                      src="/images/NoteFinali.png"
+                      alt="Note Finali"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 </div>
                 <p className="text-xl text-amber-900 mb-4">
                   Le prove sono pensate per <span className="text-pink-700 font-semibold">divertire, unire e far ridere</span>.
