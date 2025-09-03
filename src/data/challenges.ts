@@ -59,7 +59,7 @@ export const challenges: Challenge[] = [
   },
   {
     id: 7,
-    title: 'Il Relax del Montanaro',
+    title: 'Il Relax',
     description: 'Dopo una lunga passeggiata in montagna, ogni scalatore ha bisogno di riposo! Immortalate il componente della vostra Cima che incarna meglio il relax, sorpreso in una posizione di totale tranquillità.',
     icon: '😴',
     difficulty: 'Facile',
