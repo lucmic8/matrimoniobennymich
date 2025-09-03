@@ -230,7 +230,7 @@ function HomePage() {
                     <img
                       src="/images/FotoNoteFinalipng.png"
                       alt="Note Finali"
-                      className="w-full h-full object-cover object-[60%_20%]"
+                      className="w-full h-full object-cover object-[60%_15%]"
                     />
                   </div>
                 </div>
