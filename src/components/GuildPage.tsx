@@ -335,7 +335,7 @@ function GuildPage() {
                             className={`w-full max-w-md h-48 rounded-lg border-2 border-amber-300 shadow-md object-cover ${
                               challenge.id === 2 ? 'object-[center_40%]' :
                               challenge.id === 6 ? 'object-[center_80%] object-contain' :
-                             challenge.id === 9 ? 'object-[center_45%]' :
+                             challenge.id === 9 ? 'object-[center_25%]' :
                               'object-center'
                             }`}
                           />
