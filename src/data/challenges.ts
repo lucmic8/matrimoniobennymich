@@ -58,11 +58,11 @@ export const challenges: Challenge[] = [
   },
   {
     id: 7,
-    title: 'Il Meteo Imprevedibile',
+    title: 'Il Freddo Improvviso',
     description: 'In montagna il tempo può cambiare all\'improvviso! Individuate il membro più preparato e attrezzato del vostro tavolo e immortalatelo mentre mostra la sua attrezzatura da montagna (giacca, sciarpa, cappello, o qualsiasi cosa abbia portato per il freddo).',
     icon: '🌨️',
     difficulty: 'Facile',
-    tags: ['Attrezzatura', 'Preparazione', 'Meteo']
+    tags: ['Attrezzatura', 'Preparazione', 'Freddo']
   },
   {
     id: 8,
