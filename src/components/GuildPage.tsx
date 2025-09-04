@@ -206,15 +206,14 @@ function GuildPage() {
     <div className="min-h-screen relative bg-amber-50">
       {/* Summer Mountain Background */}
       <div 
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20 transition-opacity duration-500"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20"
         style={{
-          backgroundImage: `url('${guild.image}')`,
-          willChange: 'opacity'
+          backgroundImage: `url('${guild.image}')`
         }}
       />
       
       {/* Pergamena Texture Overlay */}
-      <div className="fixed inset-0 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 opacity-95 transition-opacity duration-500" style={{ willChange: 'opacity' }}></div>
+      <div className="fixed inset-0 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 opacity-95"></div>
       
       {/* Content */}
       <div className="relative z-10">
@@ -329,11 +328,11 @@ function GuildPage() {
                       </p>
                       
                       {challenge.image && (
-                        <div className="flex justify-center mb-4 transition-opacity duration-300">
+                        <div className="flex justify-center mb-4">
                           <img 
                             src={challenge.image} 
                             alt={`Esempio per ${challenge.title}`}
-                            className={`w-full max-w-md rounded-lg border-2 border-amber-300 shadow-md object-cover transition-opacity duration-200 ${
+                            className={`w-full max-w-md rounded-lg border-2 border-amber-300 shadow-md object-cover ${
                               challenge.id === 2 || challenge.id === 6 || challenge.id === 8 || challenge.id === 9 ? 'h-56' : 'h-48'
                             } ${
                               challenge.id === 2 ? 'object-[center_40%]' :
@@ -342,7 +341,6 @@ function GuildPage() {
                              challenge.id === 9 ? 'object-[center_25%]' :
                               'object-center'
                             }`}
-                            style={{ imageRendering: 'auto' }}
                           />
                         </div>
                       )}
@@ -372,7 +370,6 @@ function GuildPage() {
                           )}
                           <button 
                             onClick={() => setUploadingChallenge(challenge.id)}
-                           type="button"
                             className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center text-sm font-medium shadow-md hover:shadow-lg ${
                               challengePhotos.has(challenge.id)
                                 ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white'
@@ -450,7 +447,6 @@ function GuildPage() {
                           )}
                           <button 
                             onClick={() => setUploadingChallenge(999)}
-                           type="button"
                             className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center text-sm font-medium shadow-md hover:shadow-lg ${
                               challengePhotos.has(999)
                                 ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white'
