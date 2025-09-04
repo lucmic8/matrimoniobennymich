@@ -290,7 +290,6 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                   onClick={triggerCameraInput}
                   disabled={isUploading}
                   className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 px-4 rounded-lg transition-all duration-300 font-medium flex items-center justify-center text-lg shadow-lg hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
-                  style={{ willChange: 'transform, opacity' }}
                 >
                   <Camera className="h-6 w-6 mr-3" />
                   📸 Scatta Foto
@@ -301,7 +300,6 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                     onClick={triggerFileInput}
                     disabled={isUploading}
                     className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 px-4 rounded-lg transition-all duration-300 font-medium flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50"
-                    style={{ willChange: 'transform, opacity' }}
                   >
                     <Upload className="h-4 w-4 mr-2" />
                     📁 Carica da Galleria
@@ -311,7 +309,6 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                     onClick={onClose}
                     disabled={isUploading}
                     className="flex-1 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-800 disabled:text-gray-500 py-3 px-4 rounded-lg transition-all duration-300 font-medium disabled:cursor-not-allowed disabled:opacity-50"
-                    style={{ willChange: 'transform, opacity' }}
                   >
                     Annulla
                   </button>
@@ -322,7 +319,6 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                     onClick={handleUpload}
                     disabled={isUploading}
                     className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 px-4 rounded-lg transition-all duration-300 font-medium flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50"
-                    style={{ willChange: 'transform, opacity' }}
                   >
                     {isUploading ? (
                       <>
