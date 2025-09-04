@@ -372,6 +372,7 @@ function GuildPage() {
                           )}
                           <button 
                             onClick={() => setUploadingChallenge(challenge.id)}
+                           type="button"
                             className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center text-sm font-medium shadow-md hover:shadow-lg ${
                               challengePhotos.has(challenge.id)
                                 ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white'
@@ -449,6 +450,7 @@ function GuildPage() {
                           )}
                           <button 
                             onClick={() => setUploadingChallenge(999)}
+                           type="button"
                             className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center text-sm font-medium shadow-md hover:shadow-lg ${
                               challengePhotos.has(999)
                                 ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white'
