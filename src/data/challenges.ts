@@ -31,7 +31,7 @@ export const challenges: Challenge[] = [
     id: 3,
     title: 'L\'Imitazione dello Sposo/Sposa',
     description: 'Ogni invitato o gruppo deve imitare una posa iconica, un\'espressione facciale buffa o una caratteristica distintiva degli sposi. Possono essere ispirati da foto evocative, aneddoti raccontati, o semplicemente dalla loro personalità.',
-    image: '/images/mangio_dormi_spostata.jpeg',
+    image: '/images/mangio_dormi.jpeg',
     icon: '🎭',
     difficulty: 'Media',
     tags: ['Imitazione', 'Divertimento', 'Creatività']
