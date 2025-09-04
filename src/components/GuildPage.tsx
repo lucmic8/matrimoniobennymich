@@ -206,14 +206,15 @@ function GuildPage() {
     <div className="min-h-screen relative bg-amber-50">
       {/* Summer Mountain Background */}
       <div 
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20 transition-opacity duration-500"
         style={{
-          backgroundImage: `url('${guild.image}')`
+          backgroundImage: `url('${guild.image}')`,
+          willChange: 'opacity'
         }}
       />
       
       {/* Pergamena Texture Overlay */}
-      <div className="fixed inset-0 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 opacity-95"></div>
+      <div className="fixed inset-0 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 opacity-95 transition-opacity duration-500" style={{ willChange: 'opacity' }}></div>
       
       {/* Content */}
       <div className="relative z-10">
@@ -328,11 +329,11 @@ function GuildPage() {
                       </p>
                       
                       {challenge.image && (
-                        <div className="flex justify-center mb-4">
+                        <div className="flex justify-center mb-4 transition-opacity duration-300">
                           <img 
                             src={challenge.image} 
                             alt={`Esempio per ${challenge.title}`}
-                            className={`w-full max-w-md rounded-lg border-2 border-amber-300 shadow-md object-cover ${
+                            className={`w-full max-w-md rounded-lg border-2 border-amber-300 shadow-md object-cover transition-opacity duration-200 ${
                               challenge.id === 2 || challenge.id === 6 || challenge.id === 8 || challenge.id === 9 ? 'h-56' : 'h-48'
                             } ${
                               challenge.id === 2 ? 'object-[center_40%]' :
@@ -341,6 +342,7 @@ function GuildPage() {
                              challenge.id === 9 ? 'object-[center_25%]' :
                               'object-center'
                             }`}
+                            style={{ imageRendering: 'auto' }}
                           />
                         </div>
                       )}

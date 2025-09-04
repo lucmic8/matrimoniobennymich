@@ -1,3 +1,33 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Fix per Chrome mobile - Previene flickering durante upload */
+@layer base {
+  * {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  
+  /* Ottimizzazioni specifiche per Chrome mobile */
+  .fixed {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+  
+  /* Previene flickering durante transizioni */
+  .transition-all,
+  .transition-opacity,
+  .transition-colors {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  
+  /* Stabilizza backdrop blur su mobile */
+  [style*="backdrop-filter"] {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+}

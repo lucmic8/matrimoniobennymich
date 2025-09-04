@@ -183,7 +183,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" style={{ backdropFilter: 'blur(4px)' }}>
       <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto border-2 border-amber-200 shadow-xl">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
@@ -205,13 +205,13 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg transition-opacity duration-200">
               <p className="text-red-700 text-sm">{error}</p>
             </div>
           )}
 
           {uploadSuccess ? (
-            <div className="text-center py-8">
+            <div className="text-center py-8 transition-all duration-300">
               <div className="bg-green-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Check className="h-8 w-8 text-green-600" />
               </div>
@@ -221,12 +221,13 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
           ) : (
             <>
               {previewUrl ? (
-                <div className="mb-6">
+                <div className="mb-6 transition-all duration-300">
                   <div className="relative">
                     <img
                       src={previewUrl}
                       alt="Foto della prova"
-                      className="w-full h-48 object-cover rounded-lg border-2 border-amber-200"
+                      className="w-full h-48 object-cover rounded-lg border-2 border-amber-200 transition-opacity duration-200"
+                      style={{ imageRendering: 'auto' }}
                     />
                     <div className="absolute top-2 right-2">
                       <div className="bg-green-100 rounded-full p-1 border border-green-300">
@@ -238,7 +239,7 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                     <button
                       onClick={removePhoto}
                       disabled={isUploading}
-                      className="flex-1 text-red-600 hover:text-red-800 text-sm transition-colors py-2 px-3 border border-red-200 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 text-red-600 hover:text-red-800 text-sm transition-all duration-200 py-2 px-3 border border-red-200 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isUploading ? (
                         <div className="flex items-center justify-center">
@@ -251,13 +252,13 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                     <button
                       onClick={triggerFileInput}
                       disabled={isUploading}
-                      className="flex-1 text-amber-600 hover:text-amber-800 text-sm transition-colors py-2 px-3 border border-amber-200 rounded-lg hover:bg-amber-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 text-amber-600 hover:text-amber-800 text-sm transition-all duration-200 py-2 px-3 border border-amber-200 rounded-lg hover:bg-amber-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cambia foto
                     </button>
                   </div>
                   <div className="flex gap-2 mt-2">
-                    <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">
+                    <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200 transition-opacity duration-200">
                       ✅ Foto caricata e sincronizzata
                     </div>
                   </div>
@@ -288,7 +289,8 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                 <button
                   onClick={triggerCameraInput}
                   disabled={isUploading}
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 px-4 rounded-lg transition-all font-medium flex items-center justify-center text-lg shadow-lg hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 px-4 rounded-lg transition-all duration-300 font-medium flex items-center justify-center text-lg shadow-lg hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
+                  style={{ willChange: 'transform, opacity' }}
                 >
                   <Camera className="h-6 w-6 mr-3" />
                   📸 Scatta Foto
@@ -298,7 +300,8 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                   <button
                     onClick={triggerFileInput}
                     disabled={isUploading}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 px-4 rounded-lg transition-all font-medium flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 px-4 rounded-lg transition-all duration-300 font-medium flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50"
+                    style={{ willChange: 'transform, opacity' }}
                   >
                     <Upload className="h-4 w-4 mr-2" />
                     📁 Carica da Galleria
@@ -307,7 +310,8 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                   <button
                     onClick={onClose}
                     disabled={isUploading}
-                    className="flex-1 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-800 disabled:text-gray-500 py-3 px-4 rounded-lg transition-colors font-medium disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex-1 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-800 disabled:text-gray-500 py-3 px-4 rounded-lg transition-all duration-300 font-medium disabled:cursor-not-allowed disabled:opacity-50"
+                    style={{ willChange: 'transform, opacity' }}
                   >
                     Annulla
                   </button>
@@ -317,7 +321,8 @@ function PhotoUpload({ challengeId, challengeTitle, guildId, onClose, onPhotoUpl
                   <button
                     onClick={handleUpload}
                     disabled={isUploading}
-                    className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 px-4 rounded-lg transition-all font-medium flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-3 px-4 rounded-lg transition-all duration-300 font-medium flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50"
+                    style={{ willChange: 'transform, opacity' }}
                   >
                     {isUploading ? (
                       <>

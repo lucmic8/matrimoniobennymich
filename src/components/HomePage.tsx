@@ -31,14 +31,15 @@ function HomePage() {
     <div className="min-h-screen relative bg-amber-50">
       {/* Summer Mountain Background */}
       <div 
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20 transition-opacity duration-500"
         style={{
-          backgroundImage: `url('https://images.pexels.com/photos/1366630/pexels-photo-1366630.jpeg?auto=compress&cs=tinysrgb&w=1920')`
+          backgroundImage: `url('https://images.pexels.com/photos/1366630/pexels-photo-1366630.jpeg?auto=compress&cs=tinysrgb&w=1920')`,
+          willChange: 'opacity'
         }}
       />
       
       {/* Pergamena Texture Overlay */}
-      <div className="fixed inset-0 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 opacity-95"></div>
+      <div className="fixed inset-0 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 opacity-95 transition-opacity duration-500" style={{ willChange: 'opacity' }}></div>
       
       {/* Content */}
       <div className="relative z-10">
