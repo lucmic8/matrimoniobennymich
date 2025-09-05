@@ -117,10 +117,10 @@ function HomePage() {
             
             <div className="bg-white/70 rounded-2xl p-8 border-2 border-cyan-200 shadow-lg">
               <p className="text-xl text-amber-900 mb-6">
-                Usate il link <span className="text-cyan-700 font-semibold">"Carica la Prova"</span> presente sotto ogni missione.
+                Scegliete <span className="text-cyan-700 font-bold">una persona per tavolo</span> che si occuperà del caricamento delle prove utilizzando il pulsante <span className="text-cyan-700 font-semibold">"Carica la Prova"</span> presente sotto ogni missione.
               </p>
               <p className="text-lg text-amber-800">
-                Tutti gli scatti verranno caricati in una galleria condivisa per essere ammirate da tutti.
+                Tutti gli altri potranno ammirare le foto scattate nel proprio tavolo e anche negli altri tavoli attraverso la galleria condivisa. Ogni foto sarà visibile su tutti i dispositivi!
               </p>
             </div>
           </div>
