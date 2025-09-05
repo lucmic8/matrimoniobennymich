@@ -338,6 +338,7 @@ function GuildPage() {
                               challenge.id === 2 ? 'object-[center_40%]' :
                               challenge.id === 3 ? 'object-[45%_center]' :
                               challenge.id === 6 ? 'object-[center_80%] object-contain' :
+                             challenge.id === 8 ? 'object-[30%_center]' :
                              challenge.id === 9 ? 'object-[center_25%]' :
                               'object-center'
                             }`}
